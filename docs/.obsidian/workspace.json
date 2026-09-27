@@ -11,17 +11,14 @@
             "id": "17c772a1e927f9a3",
             "type": "leaf",
             "state": {
-              "type": "canvas",
+              "type": "markdown",
               "state": {
-                "file": "crew.canvas",
-                "viewState": {
-                  "x": 539.429289315177,
-                  "y": 162.81255032336117,
-                  "zoom": -1.0243980537998745
-                }
+                "file": "architecture.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-layout-dashboard",
-              "title": "crew"
+              "icon": "lucide-file",
+              "title": "architecture"
             }
           }
         ]
@@ -102,7 +99,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "crew.canvas",
+                "file": "architecture.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -121,7 +118,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "crew.canvas",
+                "file": "architecture.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -164,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "crew.canvas",
+                "file": "architecture.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -192,5 +189,11 @@
     }
   },
   "active": "17c772a1e927f9a3",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "crew.canvas",
+    "development-and-deployment.md",
+    "gameplay.md",
+    "overview.md",
+    "architecture.md"
+  ]
 }

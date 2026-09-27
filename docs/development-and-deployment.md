@@ -37,7 +37,8 @@ rewrite w podfolderze oraz sposób uruchamiania komend Artisan/migracji.
 Docker Compose jest środowiskiem developerskim. Nie zakładamy, że będzie można
 uruchomić go na hostingu współdzielonym.
 
-## Następny etap
+## Stan funkcji
 
-Po akceptacji zakresu dokumentacji i środowiska można dodać lobby, wybór roli,
-migracje i seedery. Mechanikę gry oraz synchronizację zostawiamy na później.
+Lobby, pokoje, anonimowi gracze, wybór ról i logi zdarzeń są dostępne po
+uruchomieniu migracji i seederów. Mechanikę gry, mapę oraz widoki kapitana i
+sternika dodamy w kolejnych etapach.

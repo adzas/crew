@@ -32,14 +32,14 @@ Otwórz [http://localhost:8080](http://localhost:8080). Logi usług sprawdzisz
 poleceniem `docker compose logs -f app nginx db`; zatrzymanie środowiska:
 `docker compose down`. Dane MariaDB pozostają w wolumenie `db-data`.
 
-Po dodaniu migracji i seederów projektu uruchomisz je tak:
+Migracje i słownik ról utworzysz poleceniem:
 
 ```sh
 docker compose exec app php artisan migrate --seed
 ```
 
-To polecenie jest przewidziane na kolejny etap; obecne repozytorium nie zawiera
-jeszcze migracji aplikacji.
+Seedowanie dodaje aktywne role Kapitana i Sternika oraz nieaktywne role
+planowane na przyszłość.
 
 ## Dane lokalne
 
@@ -58,6 +58,6 @@ Port aplikacji na komputerze to `8080`.
 
 ## Stan prac
 
-Na tym etapie repozytorium zawiera dokumentację i konfigurację lokalnego
-środowiska. Lobby, wybór ról, migracje i seedery są następnym etapem i nie są
-jeszcze zaimplementowane.
+Lobby pozwala utworzyć pokój lub dołączyć kodem, zobaczyć skład załogi i zająć
+wolną rolę. Kapitan i Sternik są aktywni; pozostałe role są widoczne, ale
+wyłączone. Symulacja, mapa i ekran gry pozostają kolejnymi etapami.

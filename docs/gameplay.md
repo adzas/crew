@@ -53,6 +53,7 @@ wymagają doprecyzowania przed implementacją mechaniki.
 - Panel kapitana: pełna mapa.
 - Panel sternika: polecenia sterowania statkiem.
 
-Interfejs rozgrywki, polling/synchronizację i pełne mechaniki odkładamy na
-kolejny etap. Niniejszy dokument opisuje docelowy zakres, a nie zaimplementowane
-funkcje.
+Lobby i wybór ról są zaimplementowane. Ekran główny rozgrywki, pełna mapa,
+sterowanie statkiem i synchronizacja kroków symulacji pozostają na kolejny etap.
+Niniejszy dokument opisuje docelowy zakres, a nie wyłącznie aktualny stan
+funkcji.
