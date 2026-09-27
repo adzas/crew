@@ -25,6 +25,28 @@
 
 To są kierunki projektowe, nie zaimplementowane jeszcze kontrakty API.
 
+## Schemat lobby
+
+Lobby korzysta z następujących tabel:
+
+- `roles` przechowuje słownik stanowisk i flagę dostępności. Seed aktywuje
+  Kapitana i Sternika; przyszłe stanowiska są zapisane jako nieaktywne.
+- `players` identyfikuje anonimowego gracza przez losowy token sesji zapisany w
+  bazie wyłącznie jako skrót.
+- `game_rooms` przechowuje pokój, jego kod i stan.
+- `room_players` jest bieżącą listą członków pokoju, ich pseudonimów i
+  uprawnienia gospodarza.
+- `room_player_roles` wiąże członka pokoju z rolą; ograniczenia unikalności
+  pozwalają przypisać jedną rolę graczowi i jednego gracza do roli w pokoju.
+- `player_join_logs` zachowuje historię skutecznych wejść, także ponownych.
+- `player_actions` rejestruje dostępne akcje lobby, ich wynik i kontekst.
+
+Adres IP w logach jest haszowany kluczem aplikacji; user-agent pozostaje
+zapisany do analizy nadużyć. Logi nie blokują graczy samodzielnie. Przed
+wdrożeniem moderacji warto dodać `player_bans` z identyfikatorem gracza lub
+skrótem IP, powodem i opcjonalnym terminem wygaśnięcia oraz egzekwować blokadę
+na serwerze.
+
 ## Środowisko lokalne
 
 `docker-compose.yaml` uruchamia trzy usługi: `app` (PHP-FPM), `nginx` i `db`
