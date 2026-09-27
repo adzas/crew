@@ -1,0 +1,15 @@
+{
+	"nodes":[
+		{"id":"deployment","type":"file","file":"development-and-deployment.md","x":520,"y":190,"width":400,"height":250},
+		{"id":"runtime","type":"text","text":"## Środowisko lokalne\n\nDocker Compose\nPHP 8.5-FPM + Nginx\nMariaDB 11.4\n\nURL: http://localhost:8080","x":1200,"y":-320,"width":320,"height":240,"color":"5"},
+		{"id":"overview","type":"file","file":"overview.md","x":-190,"y":-360,"width":380,"height":200},
+		{"id":"gameplay","type":"file","file":"gameplay.md","x":-190,"y":180,"width":380,"height":230},
+		{"id":"architecture","type":"file","file":"architecture.md","x":520,"y":-260,"width":400,"height":240}
+	],
+	"edges":[
+		{"id":"overview-gameplay","fromNode":"overview","fromSide":"bottom","toNode":"gameplay","toSide":"top","label":"opisuje zasady"},
+		{"id":"overview-architecture","fromNode":"overview","fromSide":"right","toNode":"architecture","toSide":"left","label":"wyznacza kierunek"},
+		{"id":"architecture-runtime","fromNode":"architecture","fromSide":"right","toNode":"runtime","toSide":"left","label":"lokalny skład"},
+		{"id":"architecture-deployment","fromNode":"architecture","fromSide":"bottom","toNode":"deployment","toSide":"top","label":"wdrożenie"}
+	]
+}
