@@ -33,8 +33,10 @@ telewizorze albo telefonie.
 - Różne role sterują różnymi elementami, więc ich polecenia powinny się łączyć.
 - MVP zakłada jedną osobę na rolę.
 
-Szczegóły ruchu statku, kierunki sterowania i sposób rozstrzygania kolizji
-wymagają doprecyzowania przed implementacją mechaniki.
+Ruch w MVP odbywa się po siatce w ośmiu kierunkach. Start wymaga obsadzenia
+stanowisk Kapitana i Sternika. Do doprecyzowania przed implementacją mechaniki
+pozostają wymiary i generator mapy, dystans ruchu na krok, sposób wydawania
+kursu, rozstrzyganie kolizji, wpływ uszkodzeń i dokładne warunki końca gry.
 
 ## Mapa, uszkodzenia i koniec gry
 
@@ -57,3 +59,9 @@ Lobby i wybór ról są zaimplementowane. Ekran główny rozgrywki, pełna mapa,
 sterowanie statkiem i synchronizacja kroków symulacji pozostają na kolejny etap.
 Niniejszy dokument opisuje docelowy zakres, a nie wyłącznie aktualny stan
 funkcji.
+
+## Etapy wdrożenia
+
+Implementacja jest prowadzona etapami opisanymi w
+[planie wdrożenia](development-and-deployment.md#plan-wdrożenia-rozgrywki).
+Przed zmianami mechaniki obowiązuje etap stabilizacji lokalnych testów.
