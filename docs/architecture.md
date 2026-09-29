@@ -25,6 +25,11 @@
 
 To są kierunki projektowe, nie zaimplementowane jeszcze kontrakty API.
 
+Kolejność prac, kryteria ukończenia i bramka stabilnych testów lokalnych są
+opisane w [planie wdrożenia](development-and-deployment.md#plan-wdrożenia-rozgrywki).
+Do czasu zamknięcia etapu reguł mechaniki nie należy utrwalać w schemacie
+nieuzgodnionych założeń, takich jak rozmiar mapy lub prędkość statku.
+
 ## Schemat lobby
 
 Lobby korzysta z następujących tabel:
@@ -40,12 +45,14 @@ Lobby korzysta z następujących tabel:
   pozwalają przypisać jedną rolę graczowi i jednego gracza do roli w pokoju.
 - `player_join_logs` zachowuje historię skutecznych wejść, także ponownych.
 - `player_actions` rejestruje dostępne akcje lobby, ich wynik i kontekst.
+- `player_bans` przechowuje blokady po graczu lub haszu IP, powód, opcjonalny
+  termin wygaśnięcia i opcjonalnego wystawcę. Middleware lobby sprawdza
+  aktywność blokady na każdym żądaniu i loguje zablokowane próby.
 
 Adres IP w logach jest haszowany kluczem aplikacji; user-agent pozostaje
-zapisany do analizy nadużyć. Logi nie blokują graczy samodzielnie. Przed
-wdrożeniem moderacji warto dodać `player_bans` z identyfikatorem gracza lub
-skrótem IP, powodem i opcjonalnym terminem wygaśnięcia oraz egzekwować blokadę
-na serwerze.
+zapisany do analizy nadużyć. Ban po graczu działa również po zmianie adresu IP;
+ban po IP może objąć kilka osób korzystających ze wspólnego łącza. Panel
+administracyjny do wystawiania i cofania banów pozostaje do dodania.
 
 ## Środowisko lokalne
 

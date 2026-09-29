@@ -3,13 +3,16 @@
 namespace Tests\Feature;
 
 use App\Models\GameRoom;
+use App\Models\Player;
 use App\Models\PlayerAction;
+use App\Models\PlayerBan;
 use App\Models\PlayerJoinLog;
 use App\Models\Role;
 use App\Models\RoomPlayer;
 use App\Models\RoomPlayerRole;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class LobbyTest extends TestCase
@@ -122,5 +125,47 @@ class LobbyTest extends TestCase
             'action' => 'invite.copy',
             'outcome' => 'recorded',
         ]);
+    }
+
+    public function test_active_ip_ban_blocks_lobby_access_and_logs_the_attempt(): void
+    {
+        PlayerBan::create([
+            'ip_hash' => hash_hmac('sha256', '127.0.0.1', (string) config('app.key')),
+            'reason' => 'Spam',
+        ]);
+
+        $this->post(route('lobby.join'), ['display_name' => 'Ala'])
+            ->assertForbidden();
+
+        $this->assertSame(0, GameRoom::count());
+        $this->assertDatabaseHas('player_actions', [
+            'action' => 'lobby.join',
+            'outcome' => 'banned',
+        ]);
+    }
+
+    public function test_active_player_ban_blocks_even_from_a_different_ip(): void
+    {
+        $token = str_repeat('d', 64);
+        $player = Player::create([
+            'public_id' => (string) Str::uuid(),
+            'session_key_hash' => hash_hmac('sha256', $token, (string) config('app.key')),
+        ]);
+        PlayerBan::create(['player_id' => $player->id, 'reason' => 'Abuse']);
+
+        $this->withSession(['player_token' => $token])
+            ->get(route('lobby'))
+            ->assertForbidden();
+    }
+
+    public function test_expired_ban_does_not_block_lobby_access(): void
+    {
+        PlayerBan::create([
+            'ip_hash' => hash_hmac('sha256', '127.0.0.1', (string) config('app.key')),
+            'reason' => 'Temporary spam',
+            'expires_at' => now()->subMinute(),
+        ]);
+
+        $this->get(route('lobby'))->assertOk();
     }
 }
