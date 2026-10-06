@@ -9,7 +9,7 @@ class PlayerAction extends Model
     public const UPDATED_AT = null;
 
     protected $fillable = [
-        'player_id', 'game_room_id', 'room_player_id', 'action', 'outcome', 'details', 'ip_hash', 'user_agent', 'created_at',
+        'player_id', 'game_room_id', 'room_player_id', 'acting_as_role_id', 'action', 'outcome', 'details', 'ip_hash', 'user_agent', 'created_at',
     ];
 
     protected function casts(): array

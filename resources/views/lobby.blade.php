@@ -62,6 +62,13 @@
         .primary:hover, .role-button:hover:not(:disabled) { background: var(--green-dark); transform: translateY(-1px); }
         .error-banner, .success-banner { margin: 0 0 18px; padding: 12px 14px; border-left: 3px solid var(--coral); color: #762f27; background: #f7e8df; font: 14px/1.45 ui-sans-serif, system-ui, sans-serif; }
         .success-banner { border-color: var(--green); color: var(--green-dark); background: var(--sea); }
+        .doppler-panel { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: 14px; margin-top: 24px; padding: 18px; background: #e8eadb; border: 1px solid #b9c2a8; border-left: 4px solid var(--brass); }
+        .doppler-status { grid-column: 1 / -1; margin: 0; color: var(--green-dark); font: 700 12px/1.4 ui-sans-serif, system-ui, sans-serif; }
+        .doppler-status strong { color: #7a4c19; }
+        .doppler-panel label { margin-bottom: 6px; }
+        .doppler-panel select { width: 100%; min-height: 44px; padding: 0 10px; color: var(--ink); background: white; border: 1px solid #aabbb0; border-radius: 2px; font: 14px ui-sans-serif, system-ui, sans-serif; }
+        .doppler-panel button { min-height: 44px; padding: 0 14px; border: 1px solid var(--green); border-radius: 2px; color: white; background: var(--green); cursor: pointer; font: 700 12px ui-sans-serif, system-ui, sans-serif; }
+        .doppler-panel .doppler-stop { color: var(--green-dark); background: transparent; border-color: #aabbb0; }
         .room-header { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
         .room-title { margin: 0; font-size: clamp(32px, 5vw, 52px); font-weight: 500; line-height: 1; letter-spacing: 0; }
         .room-code { display: flex; align-items: center; gap: 12px; }
@@ -90,6 +97,8 @@
             main { padding-top: 38px; }
             .intro { margin-bottom: 26px; }
             .form-grid, .lobby-grid { grid-template-columns: 1fr; }
+            .doppler-panel { grid-template-columns: 1fr; }
+            .doppler-status { grid-column: auto; }
             .room-header { align-items: start; flex-direction: column; }
             .lobby-grid { gap: 38px; }
             .role-table td:last-child, .role-table th:last-child { text-align: right; }
@@ -131,6 +140,32 @@
                 <div class="success-banner" role="status">{{ session('success') }}</div>
             @endif
 
+            @if ($dopplerEnabled)
+                <section class="doppler-panel" aria-label="Lokalna symulacja roli">
+                    @if ($dopplerRole)
+                        <p class="doppler-status" role="status">TRYB DOPPLER AKTYWNY <strong>· działasz jako {{ $dopplerRole->name }}</strong></p>
+                    @else
+                        <p class="doppler-status">TRYB DOPPLER · lokalna symulacja roli gospodarza</p>
+                    @endif
+                    <form method="POST" action="{{ route('lobby.doppler.switch') }}" id="doppler-form">
+                        @csrf
+                        <label for="doppler-role">Symuluj stanowisko</label>
+                        <select id="doppler-role" name="role" required>
+                            @foreach ($roles->where('is_active', true) as $role)
+                                <option value="{{ $role->slug }}" @selected($dopplerRole?->id === $role->id)>{{ $role->name }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                    <button type="submit" form="doppler-form">Przełącz rolę</button>
+                    @if ($dopplerRole)
+                        <form method="POST" action="{{ route('lobby.doppler.stop') }}">
+                            @csrf
+                            <button class="doppler-stop" type="submit">Wróć do siebie</button>
+                        </form>
+                    @endif
+                </section>
+            @endif
+
             <div class="lobby-grid">
                 <section aria-labelledby="crew-heading">
                     <h2 class="section-heading" id="crew-heading">Załoga <small>{{ $room->players->count() }} {{ $room->players->count() === 1 ? 'osoba' : 'osób' }}</small></h2>
@@ -150,6 +185,15 @@
                         </tbody>
                     </table>
                     <p class="room-foot">Link zaproszenia prowadzi do tego pokoju. Gospodarz jest oznaczony niezależnie od wybranego stanowiska.</p>
+
+                    @if ($roomPlayer->is_host && $room->status === 'waiting')
+                        <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line);">
+                            <form method="POST" action="{{ route('game.start') }}">
+                                @csrf
+                                <button class="primary" type="submit">Rozpocznij grę <span aria-hidden="true">→</span></button>
+                            </form>
+                        </div>
+                    @endif
                 </section>
 
                 <section aria-labelledby="roles-heading">
@@ -220,6 +264,25 @@
 
     @if ($room && $roomPlayer)
         <script>
+            @if ($room->status === 'waiting')
+                const gameStatusUrl = @json(route('game.status'));
+                const gameUrl = @json(route('game'));
+                window.setInterval(async () => {
+                    try {
+                        const response = await fetch(gameStatusUrl, {
+                            headers: { 'Accept': 'application/json' },
+                            cache: 'no-store',
+                        });
+                        if (!response.ok) return;
+
+                        const data = await response.json();
+                        if (data.status === 'playing') window.location.assign(gameUrl);
+                    } catch {
+                        // A later poll retries transient network failures.
+                    }
+                }, 2500);
+            @endif
+
             document.getElementById('copy-invite').addEventListener('click', async (event) => {
                 const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${document.getElementById('room-code').textContent}`;
                 try {

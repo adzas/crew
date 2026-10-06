@@ -18,14 +18,11 @@ docker compose down
 
 ## Stabilne testy lokalne
 
-Przed rozpoczęciem implementacji rozgrywki należy ustabilizować uruchamianie
-testów w kontenerze aplikacji. `phpunit.xml` konfiguruje SQLite in-memory, ale
-obraz PHP musi zawierać rozszerzenie `pdo_sqlite`; obecnie Dockerfile instaluje
-`pdo_mysql`, lecz nie `pdo_sqlite`. To jest pierwsze zadanie techniczne planu,
-nie zmiana już wdrożona.
+Testy Feature i Unit korzystają z SQLite in-memory skonfigurowanego w
+`phpunit.xml`. Obraz PHP zawiera `pdo_sqlite`, więc testy nie potrzebują
+działającej MariaDB ani nie zmieniają lokalnej bazy developerskiej.
 
-Po dodaniu sterownika i przebudowaniu obrazu podstawowy test run powinien
-wykonywać się bez działającej MariaDB i bez zmian trwałej bazy:
+Pełną suitę uruchom bez działającej MariaDB:
 
 ```sh
 docker compose build app
@@ -42,19 +39,33 @@ nie łączy się z usługą `db` i pozostawia lokalną bazę developerską bez z
 Testy integracyjne wymagające MariaDB powinny być osobną, jawnie uruchamianą
 grupą.
 
+### Lokalna symulacja ról gospodarzem
+
+Tryb Doppler pozwala gospodarzowi testować aktywne role w ramach jednej sesji.
+Nie zmienia składu pokoju ani przypisanej gospodarzowi roli. Włącz go wyłącznie
+lokalnie, ustawiając `GAME_DOPPLER_ENABLED=true` w `.env`; domyślna wartość to
+`false`. Funkcja jest dodatkowo ograniczona do środowisk `local` i `testing`,
+więc nie zadziała w `production`, nawet jeśli flaga zostanie tam ustawiona.
+
+W danej chwili można symulować jedną rolę. Inne karty tej samej przeglądarki
+współdzielące sesję zobaczą to samo przełączenie. Logi akcji zachowują
+gospodarza jako autora i zapisują osobno rolę symulowaną.
+
 ## Plan wdrożenia rozgrywki
 
 Rozwój gry jest podzielony na przyrosty. Każdy etap kończy się testami
 akceptacyjnymi oraz kontrolą formatowania i diagnostyki. Nie rozpoczynamy
 kolejnego etapu, jeśli jego kontrakt lub testy poprzedniego nie są stabilne.
 
-1. **Stabilizacja testów lokalnych.** Dodać `pdo_sqlite` do obrazu PHP,
-    przebudować kontener i potwierdzić opisane wyżej polecenie na pełnej suitcie.
-    Nie zmieniać w tym kroku zachowania gry.
+1. **Stabilizacja testów lokalnych.** Zakończona: obraz PHP zawiera `pdo_sqlite`,
+   a opisana wyżej komenda uruchamia suitę na SQLite in-memory.
 2. **Reguły MVP.** Doprecyzować mapę, ruch, kolizje, uszkodzenia, koniec gry,
-   cooldown i harmonogram. Ustalone już decyzje: siatka z ośmioma kierunkami,
-   start wymaga Kapitana i Sternika, a serwer jest źródłem prawdy. Kryterium:
-   sporne przypadki mechaniki dają się opisać jednoznacznymi testami.
+   cooldown i harmonogram. Ustalone już decyzje: mapa 20x20, ruch tylko w przód
+   względem dziobu w ośmiu kierunkach, kolizja z granicą lub przeszkodą kończy
+   rozgrywkę, brak osobnego systemu obrażeń w prostym MVP, start wymaga Kapitana
+   i Sternika, a serwer jest źródłem prawdy. Cooldown polecenia wynosi 15 sekund,
+   a czas gry liczy się wyłącznie po stronie serwera. Kryterium: sporne
+   przypadki mechaniki dają się opisać jednoznacznymi testami.
 3. **Start i trwały stan partii.** Dodać zapis pojedynczego uruchomienia gry,
    mapy i początkowego stanu statku. Start dostępny tylko gospodarzowi,
    transakcyjny i dozwolony raz po obsadzeniu obu ról. Kryterium: próby

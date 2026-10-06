@@ -9,6 +9,7 @@ use App\Models\PlayerJoinLog;
 use App\Models\Role;
 use App\Models\RoomPlayer;
 use App\Models\RoomPlayerRole;
+use App\Services\Lobby\RoomPlayerContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -18,20 +19,26 @@ use Illuminate\View\View;
 
 class LobbyController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, RoomPlayerContext $context): View|RedirectResponse
     {
-        $roomPlayer = RoomPlayer::with(['gameRoom', 'roleAssignment.role'])
-            ->find($request->session()->get('room_player_id'));
+        $roomPlayer = $context->current($request);
 
         if ($roomPlayer) {
             $roomPlayer->forceFill(['last_seen_at' => now()])->save();
             $roomPlayer->gameRoom->load(['players.roleAssignment.role']);
+
+            if ($roomPlayer->gameRoom->status === 'playing') {
+                return redirect()->route('game');
+            }
         }
 
         return view('lobby', [
             'roomPlayer' => $roomPlayer,
             'room' => $roomPlayer?->gameRoom,
             'roles' => Role::query()->orderBy('sort_order')->get(),
+            'dopplerEnabled' => $context->dopplerEnabled() && (bool) $roomPlayer?->is_host,
+            'dopplerRole' => $context->dopplerRole($request, $roomPlayer),
+            'effectiveRole' => $context->effectiveRole($request, $roomPlayer),
         ]);
     }
 
@@ -110,16 +117,19 @@ class LobbyController extends Controller
         }
 
         $request->session()->put('room_player_id', $result['room_player_id']);
+        $request->session()->forget(['doppler_role_id', 'doppler_room_player_id']);
 
         return redirect()->route('lobby');
     }
 
     public function claimRole(Request $request, string $role): RedirectResponse
     {
-        $roomPlayer = RoomPlayer::with('gameRoom')->find($request->session()->get('room_player_id'));
+        $roomPlayer = app(RoomPlayerContext::class)->current($request);
         if (! $roomPlayer) {
             return redirect()->route('lobby')->withErrors(['lobby' => 'Dołącz do pokoju, aby wybrać rolę.']);
         }
+
+        abort_unless($roomPlayer->gameRoom->status === 'waiting', 403);
 
         $ipHash = $this->ipHash($request);
         $userAgent = Str::limit((string) $request->userAgent(), 1000, '');
@@ -164,7 +174,7 @@ class LobbyController extends Controller
     {
         abort_unless($action === 'invite.copy', 404);
 
-        $roomPlayer = RoomPlayer::with('gameRoom', 'player')->find($request->session()->get('room_player_id'));
+        $roomPlayer = app(RoomPlayerContext::class)->current($request);
         abort_unless($roomPlayer !== null, 403);
 
         $roomPlayer->gameRoom->update(['last_activity_at' => now()]);
