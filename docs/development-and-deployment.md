@@ -60,9 +60,12 @@ kolejnego etapu, jeśli jego kontrakt lub testy poprzedniego nie są stabilne.
 1. **Stabilizacja testów lokalnych.** Zakończona: obraz PHP zawiera `pdo_sqlite`,
    a opisana wyżej komenda uruchamia suitę na SQLite in-memory.
 2. **Reguły MVP.** Doprecyzować mapę, ruch, kolizje, uszkodzenia, koniec gry,
-   cooldown i harmonogram. Ustalone już decyzje: siatka z ośmioma kierunkami,
-   start wymaga Kapitana i Sternika, a serwer jest źródłem prawdy. Kryterium:
-   sporne przypadki mechaniki dają się opisać jednoznacznymi testami.
+   cooldown i harmonogram. Ustalone już decyzje: mapa 20x20, ruch tylko w przód
+   względem dziobu w ośmiu kierunkach, kolizja z granicą lub przeszkodą kończy
+   rozgrywkę, brak osobnego systemu obrażeń w prostym MVP, start wymaga Kapitana
+   i Sternika, a serwer jest źródłem prawdy. Cooldown polecenia wynosi 15 sekund,
+   a czas gry liczy się wyłącznie po stronie serwera. Kryterium: sporne
+   przypadki mechaniki dają się opisać jednoznacznymi testami.
 3. **Start i trwały stan partii.** Dodać zapis pojedynczego uruchomienia gry,
    mapy i początkowego stanu statku. Start dostępny tylko gospodarzowi,
    transakcyjny i dozwolony raz po obsadzeniu obu ról. Kryterium: próby

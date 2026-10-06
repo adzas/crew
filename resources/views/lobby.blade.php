@@ -185,6 +185,15 @@
                         </tbody>
                     </table>
                     <p class="room-foot">Link zaproszenia prowadzi do tego pokoju. Gospodarz jest oznaczony niezależnie od wybranego stanowiska.</p>
+
+                    @if ($roomPlayer->is_host && $room->status === 'waiting')
+                        <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line);">
+                            <form method="POST" action="{{ route('game.start') }}">
+                                @csrf
+                                <button class="primary" type="submit">Rozpocznij grę <span aria-hidden="true">→</span></button>
+                            </form>
+                        </div>
+                    @endif
                 </section>
 
                 <section aria-labelledby="roles-heading">
