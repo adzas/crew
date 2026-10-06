@@ -1,6 +1,7 @@
 {
     "chat.tools.terminal.autoApprove": {
         "command": true,
-        "true": true
+        "true": true,
+        "docker compose": true
     }
 }

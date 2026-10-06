@@ -264,6 +264,25 @@
 
     @if ($room && $roomPlayer)
         <script>
+            @if ($room->status === 'waiting')
+                const gameStatusUrl = @json(route('game.status'));
+                const gameUrl = @json(route('game'));
+                window.setInterval(async () => {
+                    try {
+                        const response = await fetch(gameStatusUrl, {
+                            headers: { 'Accept': 'application/json' },
+                            cache: 'no-store',
+                        });
+                        if (!response.ok) return;
+
+                        const data = await response.json();
+                        if (data.status === 'playing') window.location.assign(gameUrl);
+                    } catch {
+                        // A later poll retries transient network failures.
+                    }
+                }, 2500);
+            @endif
+
             document.getElementById('copy-invite').addEventListener('click', async (event) => {
                 const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${document.getElementById('room-code').textContent}`;
                 try {

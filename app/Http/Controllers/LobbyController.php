@@ -19,13 +19,17 @@ use Illuminate\View\View;
 
 class LobbyController extends Controller
 {
-    public function index(Request $request, RoomPlayerContext $context): View
+    public function index(Request $request, RoomPlayerContext $context): View|RedirectResponse
     {
         $roomPlayer = $context->current($request);
 
         if ($roomPlayer) {
             $roomPlayer->forceFill(['last_seen_at' => now()])->save();
             $roomPlayer->gameRoom->load(['players.roleAssignment.role']);
+
+            if ($roomPlayer->gameRoom->status === 'playing') {
+                return redirect()->route('game');
+            }
         }
 
         return view('lobby', [
@@ -124,6 +128,8 @@ class LobbyController extends Controller
         if (! $roomPlayer) {
             return redirect()->route('lobby')->withErrors(['lobby' => 'Dołącz do pokoju, aby wybrać rolę.']);
         }
+
+        abort_unless($roomPlayer->gameRoom->status === 'waiting', 403);
 
         $ipHash = $this->ipHash($request);
         $userAgent = Str::limit((string) $request->userAgent(), 1000, '');

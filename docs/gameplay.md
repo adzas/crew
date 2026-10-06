@@ -12,7 +12,7 @@
 
 | Rola | Informacje i wpływ | Zakres MVP |
 | --- | --- | --- |
-| Gospodarz | Zarządza pokojem i uruchamia rozgrywkę; może pokazać główny ekran | Tak |
+| Gospodarz | Zarządza pokojem i uruchamia rozgrywkę; w trakcie gry może zmieniać stanowiska załogi niezależnie od własnej roli | Tak |
 | Kapitan | Widzi całą mapę i komunikuje się z załogą poza aplikacją | Tak |
 | Sternik | Wprowadza polecenia dotyczące kursu statku | Tak |
 | Lokalizator | W przyszłości wykrywa obiekty lub zagrożenia | Nie |
@@ -21,8 +21,11 @@
 | Operator prędkości | W przyszłości steruje prędkością | Nie; statek ma stałą prędkość |
 
 „Gospodarz” jest uprawnieniem osoby, która pierwsza otworzy pokój, nie
-stanowiskiem załogi. Ekran główny to osobny widok, który można wyświetlić na
-telewizorze albo telefonie.
+stanowiskiem załogi. Zachowuje panel zarządzania stanowiskami także wtedy, gdy
+sam obejmie rolę Sternika. Tylko gracz z rolą Kapitana widzi pełną mapę; widok
+mapy jest jego umiejętnością i nie jest wyświetlany Sternikowi ani pozostałej
+załodze. Ekran główny to osobny widok, który można wyświetlić na telewizorze
+albo telefonie.
 
 ## Czas i polecenia
 
@@ -94,8 +97,10 @@ telewizorze albo telefonie.
 - Lobby: kod/link pokoju, lista graczy i zajęte/wolne role, przycisk startu dla
   gospodarza.
 - Ekran główny: widok statku i lokalnego otoczenia.
-- Panel kapitana: pełna mapa.
+- Panel kapitana: pełna mapa, dostępna wyłącznie dla gracza z rolą Kapitana.
 - Panel sternika: polecenia sterowania statkiem.
+- Panel gospodarza: zarządzanie rolami w trakcie rozgrywki, niezależne od roli
+  załogowej gospodarza.
 
 Lobby i wybór ról są zaimplementowane. Ekran główny rozgrywki, pełna mapa,
 sterowanie statkiem i synchronizacja kroków symulacji pozostają na kolejny etap.
