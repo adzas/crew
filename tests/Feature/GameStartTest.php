@@ -195,7 +195,9 @@ class GameStartTest extends TestCase
             ->assertSee('Ustaw kierunek')
             ->assertDontSee('Mapa testowa')
             ->assertDontSee('Zarządzanie stanowiskami')
-            ->assertSee('SE');
+            ->assertSee('SE')
+            ->assertSee('window.setInterval')
+            ->assertSee('--ship-angle');
 
         $this->postJson(route('game.command.store'), [
             'direction' => 'E',

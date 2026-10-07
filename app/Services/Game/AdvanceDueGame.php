@@ -50,10 +50,18 @@ class AdvanceDueGame
                 $attemptedX = $state->position_x + $offsetX;
                 $attemptedY = $state->position_y + $offsetY;
                 $map = $run->map_data;
-                $obstacles = array_fill_keys(array_map(
-                    fn (array $cell): string => $cell[0].':'.$cell[1],
-                    $map['obstacles'],
-                ), true);
+                $obstacles = [];
+
+                foreach ($map['obstacles'] ?? [] as $cell) {
+                    if (is_array($cell) && array_key_exists('x', $cell) && array_key_exists('y', $cell)) {
+                        $obstacles[$cell['x'].':'.$cell['y']] = true;
+                        continue;
+                    }
+
+                    if (is_array($cell) && isset($cell[0], $cell[1])) {
+                        $obstacles[$cell[0].':'.$cell[1]] = true;
+                    }
+                }
 
                 $reason = null;
                 if ($attemptedX < 0 || $attemptedY < 0 || $attemptedX >= $map['size'] || $attemptedY >= $map['size']) {
@@ -90,7 +98,7 @@ class AdvanceDueGame
                 $state->heading = $headingAfter;
                 $state->tick_number = $tickNumber;
                 $state->next_tick_at = $tickAt->copy()->addSeconds(self::TICK_SECONDS);
-                if ($reason === null) {
+                if ($reason === null || $reason === 'obstacle') {
                     $state->position_x = $attemptedX;
                     $state->position_y = $attemptedY;
                     $state->moves_made++;

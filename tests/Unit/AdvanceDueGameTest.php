@@ -52,7 +52,31 @@ class AdvanceDueGameTest extends TestCase
         $this->assertSame(0, $state->moves_made);
     }
 
-    private function makeRun(array $stateOverrides = []): array
+    public function test_obstacle_collision_moves_the_ship_onto_the_obstacle_before_losing(): void
+    {
+        [$run, $state] = $this->makeRun([
+            'position_x' => 4,
+            'position_y' => 9,
+            'heading' => 'E',
+        ], [
+            ['x' => 5, 'y' => 9],
+        ]);
+
+        app(AdvanceDueGame::class)->advance($run->id, now()->addSeconds(20));
+
+        $state->refresh();
+        $run->refresh();
+        $tick = $run->ticks()->firstOrFail();
+
+        $this->assertSame('lost', $run->status);
+        $this->assertSame('obstacle', $run->outcome_reason);
+        $this->assertSame(5, $state->position_x);
+        $this->assertSame(9, $state->position_y);
+        $this->assertSame(5, $tick->attempted_x);
+        $this->assertSame(1, $state->moves_made);
+    }
+
+    private function makeRun(array $stateOverrides = [], array $obstacles = []): array
     {
         $room = GameRoom::create(['code' => strtoupper(fake()->unique()->lexify('??????')), 'status' => 'playing']);
         $series = GameSeries::create([
@@ -70,7 +94,7 @@ class AdvanceDueGameTest extends TestCase
                 'size' => 20,
                 'start' => ['x' => 4, 'y' => 9],
                 'target' => ['x' => 16, 'y' => 15],
-                'obstacles' => [],
+                'obstacles' => $obstacles,
             ],
             'started_at' => now(),
         ]);
