@@ -398,7 +398,30 @@
                     </div>
                 </div>
 
-                @if (($isHelmsman ?? false))
+                @if (($run->status ?? 'running') !== 'running')
+                    <div class="helmsman-panel">
+                        <p class="eyebrow">Podsumowanie partii</p>
+                        <h3 style="margin: 6px 0 12px; font-size: 22px;">{{ $run->status === 'won' ? 'Zwycięstwo' : 'Porażka' }}</h3>
+
+                        <div class="helmsman-summary">
+                            <div>
+                                <span>Wynik</span>
+                                <strong>{{ $run->status === 'won' ? 'Cel osiągnięty' : 'Statek zniszczony' }}</strong>
+                            </div>
+                            <div>
+                                <span>Ruchy</span>
+                                <strong>{{ $run->state?->moves_made ?? 0 }}</strong>
+                            </div>
+                        </div>
+
+                        @if (($isHost ?? false))
+                            <form method="POST" action="{{ route('game.start') }}">
+                                @csrf
+                                <button class="primary" type="submit" style="width:100%; margin-top: 10px;">Rozpocznij kolejną partię</button>
+                            </form>
+                        @endif
+                    </div>
+                @elseif (($isHelmsman ?? false))
                     <div class="helmsman-panel">
                         <div class="helmsman-header">
                             <div>

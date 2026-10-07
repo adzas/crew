@@ -29,15 +29,31 @@ albo telefonie.
 
 ## Czas i polecenia
 
-- Gracz może wysłać kolejną akcję po 15 sekundach.
-- Symulacja świata wykonuje krok co 20 sekund.
-- Jeśli gracz zmieni polecenie przed krokiem świata, jego ostatnie polecenie
-  zastępuje wcześniejsze polecenie dotyczące tej samej rzeczy.
-- Różne role sterują różnymi elementami, więc ich polecenia powinny się łączyć.
-- MVP zakłada jedną osobę na rolę.
-- Licznik czasu gry jest generowany wyłącznie po stronie serwera. Odświeżenie
-  przeglądarki, zmiana karty lub utrata połączenia nie kończą tury ani nie
-  resetują sygnału czasu.
+- Cooldown sterowania sternika wynosi 15 sekund, a świat wykonuje krok co 20
+  sekund. Oba czasy są mierzone przez serwer.
+- Polecenie sternika ustawia nowy kierunek dziobu. Statek wykonuje jeden ruch
+  naprzód w tym kierunku podczas najbliższego kroku; jeśli przed krokiem
+  nadejdzie kolejne dozwolone polecenie, zastępuje poprzednie. Ostatni ustawiony
+  kurs pozostaje aktywny w kolejnych krokach, dopóki sternik go nie zmieni.
+- Polecenia innych, niezależnych ról powinny łączyć się, a nie wzajemnie
+  zastępować. MVP zakłada jedną osobę na stanowisko.
+- Serwer jest źródłem czasu i stanu. Odświeżenie przeglądarki, zmiana karty lub
+  utrata połączenia nie kończą ani nie resetują partii.
+
+## Serie rozgrywek i podsumowania
+
+- Seria składa się z trzech kolejnych partii. Gospodarz ręcznie uruchamia
+  następną partię po obejrzeniu podsumowania poprzedniej.
+- Każda partia ma własną mapę, stan początkowy, komendy, ticki i wynik. Nowa
+  partia nie nadpisuje ani nie usuwa danych poprzedniej.
+- Podsumowanie partii pokazuje wynik, liczbę udanych ruchów oraz minimalną
+  liczbę legalnych ruchów pozostałych do celu, uwzględniając przeszkody i
+  kierunek dziobu. Ruch po skosie przy narożniku jest dozwolony, jeśli pole
+  docelowe jest legalne.
+- Po trzeciej partii seria zostaje zamknięta i pokazuje wyniki wszystkich
+  partii oraz łączną liczbę udanych ruchów. Porażka kończy partię, nie serię.
+- Reset oznacza utworzenie następnej partii z nowym stanem, nigdy kasowanie
+  historii.
 
 ## Wersja ustalona MVP: mapa, ruch i kolizje
 
