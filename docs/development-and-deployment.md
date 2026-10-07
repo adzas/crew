@@ -59,39 +59,40 @@ kolejnego etapu, jeśli jego kontrakt lub testy poprzedniego nie są stabilne.
 
 1. **Stabilizacja testów lokalnych.** Zakończona: obraz PHP zawiera `pdo_sqlite`,
    a opisana wyżej komenda uruchamia suitę na SQLite in-memory.
-2. **Reguły MVP.** Doprecyzować mapę, ruch, kolizje, uszkodzenia, koniec gry,
-   cooldown i harmonogram. Ustalone już decyzje: mapa 20x20, ruch tylko w przód
-   względem dziobu w ośmiu kierunkach, kolizja z granicą lub przeszkodą kończy
-   rozgrywkę, brak osobnego systemu obrażeń w prostym MVP, start wymaga Kapitana
-   i Sternika, a serwer jest źródłem prawdy. Cooldown polecenia wynosi 15 sekund,
-   a czas gry liczy się wyłącznie po stronie serwera. Kryterium: sporne
-   przypadki mechaniki dają się opisać jednoznacznymi testami.
-3. **Start i trwały stan partii.** Dodać zapis pojedynczego uruchomienia gry,
-   mapy i początkowego stanu statku. Start dostępny tylko gospodarzowi,
-   transakcyjny i dozwolony raz po obsadzeniu obu ról. Kryterium: próby
-   nieuprawnione, przedwczesne i powtórne nie zmieniają stanu pokoju.
+2. **Reguły MVP.** Ustalone: mapa 20x20, ruch tylko w przód względem dziobu
+   w ośmiu kierunkach, ruch po skosie dozwolony, jeśli docelowe pole jest legalne,
+   kolizja z granicą lub przeszkodą kończy partię, bez osobnego systemu obrażeń,
+   start wymaga Kapitana i Sternika. Cooldown wynosi 15 sekund, tick 20 sekund,
+   ostatni dozwolony kurs pozostaje aktywny; seria ma trzy ręcznie uruchamiane
+   partie. Kryterium: sporne przypadki mechaniki opisują jednoznaczne testy.
+3. **Start i trwały stan partii.** Dodać zapis serii z trzema partiami, mapy i
+   początkowego stanu statku. Start dostępny tylko gospodarzowi, transakcyjny i
+   dozwolony po obsadzeniu obu ról. Kolejne partie gospodarz uruchamia ręcznie
+   po podsumowaniu. Kryterium: start tworzy dokładnie jedną serię/partię, a
+   próby nieuprawnione, przedwczesne i powtórne nie duplikują stanu.
 4. **Polecenia graczy.** Zapisywać polecenia niezależnie od ogólnego logu akcji;
-   serwer sprawdza rolę, stan gry, poprawność danych, cooldown 5 sekund oraz
-   zastępowanie wcześniejszego polecenia dotyczącego tego samego elementu.
-   Kryterium: testy poprawnych i odrzuconych poleceń oraz łączenia poleceń ról.
+   serwer sprawdza rolę, stan gry, poprawność danych i cooldown 15 sekund oraz
+   zachowuje historię poleceń zastąpionych przed tickiem. Kryterium: testy
+   poprawnych i odrzuconych poleceń oraz łączenia poleceń ról.
 5. **Symulacja świata.** Wydzielić deterministyczny krok serwerowy co 20 sekund,
-   zastosować polecenia, ruch, kolizje i uszkodzenia oraz zabezpieczyć tick
-   przed podwójnym wykonaniem. Kryterium: reguły domenowe mają testy brzegowe,
-   a opóźnione lub powtórne wywołanie nie dubluje skutków.
-6. **Ekrany ról.** Dodać ekran główny, pełną mapę Kapitana i panel Sternika.
-   Odczyt stanu filtruje dane po roli; klient wysyła komendy, lecz sam nie
-   rozstrzyga symulacji. Kryterium: testy uprawnień i braku wycieku informacji,
-   a ręczny test w dwóch kartach potwierdza współpracę graczy.
-7. **Koniec i utrzymanie.** Dodać zwycięstwo, porażkę, blokadę dalszych komend,
-   reset po godzinie rzeczywistej bezczynności oraz uruchamianie ticków i
-   porządkowania zgodne z możliwościami hostingu. Kryterium: pełny test od
-   lobby do końca gry i nowego uruchomienia oraz sprawdzenie po odświeżeniu.
+   zastosować polecenia i kurs, zapisać każdą pozycję, rozstrzygnąć kolizje i
+   koniec gry oraz zabezpieczyć tick przed podwójnym wykonaniem. Kryterium:
+   reguły domenowe mają testy brzegowe, a ponowiony tick nie dubluje skutków.
+6. **Ekrany ról.** Podłączyć ekran główny, pełną mapę Kapitana i panel Sternika
+   do trwałych projekcji stanu; klient wysyła komendy, lecz nie rozstrzyga
+   symulacji. Wynik partii pokazuje udane ruchy i pozostałą legalną trasę.
+   Kryterium: testy uprawnień i braku wycieku mapy, ręczny test dwóch kart.
+7. **Koniec, seria i utrzymanie.** Blokować komendy po wyniku, zachować historię
+   partii, pozwolić gospodarzowi uruchomić następną oraz po trzeciej pokazać
+   podsumowanie serii. Dodać reset pokoju po godzinie bezczynności. Ticki
+   nadrabia `advanceDue` wywoływane przy odczycie stanu i zapisie komendy,
+   niezależnie od dostępności schedulera. Kryterium: pełny test lobby -> trzy
+   partie -> podsumowanie i ponowne uruchomienie pokoju.
 
-Etap 1 jest bramką dla całego rozwoju. Etap 2 blokuje implementację stanu,
-komend i symulacji. Ekrany można przygotować po ustaleniu kontraktu odczytu,
-ale integracja wymaga działającego stanu i symulacji. Szczegóły generatora mapy,
-jej wymiarów, ruchu na tick, kolizji, progów uszkodzeń, końca gry oraz dostępnego
-na hostingu schedulera pozostają do decyzji w etapie 2.
+Etap 1 jest bramką dla całego rozwoju i został uzgodniony. Trwały stan blokuje
+komendy i symulację. Ekrany można integrować po ustaleniu projekcji stanu;
+klient nie rozstrzyga mechaniki. Generator mapy musi tworzyć osiągalny cel, a
+`advanceDue` rozlicza opóźnione ticki według czasu serwera.
 
 `docker compose down` zatrzymuje i usuwa kontenery, ale pozostawia wolumen bazy.
 Usunięcie danych wymaga jawnego `docker compose down -v`.

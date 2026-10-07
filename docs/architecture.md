@@ -7,9 +7,11 @@
 - Nginx jako serwer HTTP i PHP-FPM jako runtime aplikacji.
 - Docker Compose lokalnie, aby środowisko nie zależało od PHP i Composera
   zainstalowanych na komputerze.
-- Przeglądarka mobilna jako klient. WebSockety nie są wymagane dla spokojnej
-  symulacji aktualizowanej co 20 sekund; częstotliwość odpytywania trzeba
-  ustalić przy implementacji.
+- Przeglądarka mobilna jako klient. WebSockety ani cron nie są wymagane dla
+  MVP. Każdy odczyt stanu lub zapis komendy uruchamia serwerowe `advanceDue`,
+  które rozlicza wszystkie kroki należne według zegara serwera; po okresie bez
+  żądań stan nadrabia zaległe ticki przy następnym żądaniu. Klient odpytuje stan,
+  aby odświeżać widok.
 
 ## Zasady odpowiedzialności
 
@@ -53,7 +55,34 @@ Adres IP w logach jest haszowany kluczem aplikacji; user-agent pozostaje
 zapisany do analizy nadużyć. Ban po graczu działa również po zmianie adresu IP;
 ban po IP może objąć kilka osób korzystających ze wspólnego łącza. Panel
 administracyjny do wystawiania i cofania banów pozostaje do dodania.
+## Stan i historia rozgrywki
 
+`player_actions` pozostaje ogólnym audytem zdarzeń użytkownika, np. startu gry,
+zmiany roli i odrzuconych akcji lobby. Nie jest kolejką poleceń ani źródłem
+stanu symulacji. Mechanika korzysta z osobnych rekordów:
+
+- `game_series` grupuje trzy partie jednego pokoju i przechowuje postęp oraz
+  wynik serii.
+- `game_runs` opisuje jedną partię: status i wynik, numer w serii, mapę wraz
+  z seedem, cel oraz czas rozpoczęcia i zakończenia.
+- `game_states` przechowuje jeden bieżący snapshot partii: pozycję statku,
+  kierunek dziobu, numer ticka i liczbę udanych ruchów.
+- `game_commands` jest trwałym dziennikiem poleceń z autorem, rolą, payloadem,
+  czasem przyjęcia i statusem wykonania. Zastąpione polecenie pozostaje w
+  historii ze statusem `superseded`.
+- `game_ticks` jest append-only historią kroków świata z numerem ticka, stanem
+  przed i po ruchu oraz zastosowanymi poleceniami.
+
+Każda partia ma własną mapę i stan. Porażka lub zwycięstwo kończy partię, ale
+nie usuwa jej danych; gospodarz ręcznie uruchamia następną z serii. Po trzeciej
+partii seria otrzymuje końcowe podsumowanie. Cooldown Sternika wynosi 15 sekund,
+a krok symulacji 20 sekund. Serwer waliduje komendy i jest jedynym źródłem
+prawdy o pozycji.
+
+Tick musi być idempotentny: rekord stanu jest blokowany w transakcji, a numer
+ticka jest unikalny w obrębie partii. Szczegóły wyzwalania ticków zależą od
+możliwości schedulera na docelowym hostingu; decyzja nie może przenosić
+rozstrzygania symulacji do przeglądarki.
 ## Środowisko lokalne
 
 `docker-compose.yaml` uruchamia trzy usługi: `app` (PHP-FPM), `nginx` i `db`

@@ -111,11 +111,28 @@
         }
         .tile.wall { background: var(--wall); }
         .tile.goal { background: rgba(141, 219, 160, 0.25); border: 1px solid rgba(141, 219, 160, 0.8); }
-        .tile.ship { background: linear-gradient(135deg, rgba(217,183,106,0.95), rgba(180,142,68,.9)); }
+        .tile.ship {
+            background: linear-gradient(135deg, rgba(217,183,106,0.95), rgba(180,142,68,.9));
+        }
         .tile.ship::after {
-            content: '◢';
-            font-size: 14px;
-            color: #1a1a1a;
+            content: '';
+            display: block;
+            width: 68%;
+            height: 54%;
+            background: linear-gradient(90deg, #2f2a20 0%, #e8c76f 30%, #f4dc8d 100%);
+            border-radius: 20% 22% 18% 14%;
+            clip-path: polygon(0 35%, 62% 0, 100% 50%, 62% 100%, 0 65%, 18% 50%);
+            transform: rotate(var(--ship-angle, 0deg));
+            transform-origin: center;
+            transition: transform 0.25s ease, filter 0.25s ease;
+            box-shadow: inset -8px 0 0 rgba(16, 15, 15, 0.24);
+        }
+        .tile.ship.crash {
+            background: linear-gradient(135deg, rgba(181, 52, 41, 0.96), rgba(108, 25, 21, 0.9));
+        }
+        .tile.ship.crash::after {
+            background: linear-gradient(90deg, #2a1616 0%, #fe8a73 35%, #ffd2b8 100%);
+            box-shadow: inset -8px 0 0 rgba(65, 20, 20, 0.35);
         }
         .legend {
             display: flex;
@@ -368,14 +385,34 @@
                 <section class="panel map-panel" aria-labelledby="map-heading">
                     <h2 id="map-heading" style="margin:0; font-size: 24px;">Mapa testowa</h2>
                     <div class="map" aria-label="Mapa rozgrywki">
+                        @php
+                            $shipAngleMap = [
+                                'N' => '270deg',
+                                'NE' => '315deg',
+                                'E' => '0deg',
+                                'SE' => '45deg',
+                                'S' => '90deg',
+                                'SW' => '135deg',
+                                'W' => '180deg',
+                                'NW' => '225deg',
+                            ];
+                            $shipAngle = $shipAngleMap[$selectedDirection] ?? '0deg';
+                        @endphp
                         @for ($y = 0; $y < $mapSize; $y++)
                             @for ($x = 0; $x < $mapSize; $x++)
                                 @php
-                                    $isWall = collect($obstacles)->contains(fn ($cell) => $cell[0] === $x && $cell[1] === $y);
+                                    $isWall = collect($obstacles)->contains(function ($cell) use ($x, $y) {
+                                        if (is_array($cell) && array_key_exists('x', $cell) && array_key_exists('y', $cell)) {
+                                            return (int) $cell['x'] === $x && (int) $cell['y'] === $y;
+                                        }
+
+                                        return is_array($cell) && isset($cell[0], $cell[1]) && (int) $cell[0] === $x && (int) $cell[1] === $y;
+                                    });
                                     $isShip = $shipPosition['x'] === $x && $shipPosition['y'] === $y;
                                     $isGoal = $target['x'] === $x && $target['y'] === $y;
+                                    $isCrash = $isShip && $isWall && ($run->outcome_reason ?? null) === 'obstacle';
                                 @endphp
-                                <div class="tile {{ $isWall ? 'wall' : '' }} {{ $isGoal ? 'goal' : '' }} {{ $isShip ? 'ship' : '' }}" aria-label="Pole {{ $x + 1 }}, {{ $y + 1 }}"></div>
+                                <div class="tile {{ $isWall ? 'wall' : '' }} {{ $isGoal ? 'goal' : '' }} {{ $isShip ? 'ship' : '' }} {{ $isCrash ? 'crash' : '' }}" aria-label="Pole {{ $x + 1 }}, {{ $y + 1 }}" @if ($isShip) style="--ship-angle: {{ $shipAngle }};" @endif></div>
                             @endfor
                         @endfor
                     </div>
@@ -398,7 +435,30 @@
                     </div>
                 </div>
 
-                @if (($isHelmsman ?? false))
+                @if (($run->status ?? 'running') !== 'running')
+                    <div class="helmsman-panel">
+                        <p class="eyebrow">Podsumowanie partii</p>
+                        <h3 style="margin: 6px 0 12px; font-size: 22px;">{{ $run->status === 'won' ? 'Zwycięstwo' : 'Porażka' }}</h3>
+
+                        <div class="helmsman-summary">
+                            <div>
+                                <span>Wynik</span>
+                                <strong>{{ $run->status === 'won' ? 'Cel osiągnięty' : 'Statek zniszczony' }}</strong>
+                            </div>
+                            <div>
+                                <span>Ruchy</span>
+                                <strong>{{ $run->state?->moves_made ?? 0 }}</strong>
+                            </div>
+                        </div>
+
+                        @if (($isHost ?? false))
+                            <form method="POST" action="{{ route('game.start') }}">
+                                @csrf
+                                <button class="primary" type="submit" style="width:100%; margin-top: 10px;">Rozpocznij kolejną partię</button>
+                            </form>
+                        @endif
+                    </div>
+                @elseif (($isHelmsman ?? false))
                     <div class="helmsman-panel">
                         <div class="helmsman-header">
                             <div>
@@ -488,6 +548,10 @@
     </div>
 
     <script>
+        window.setInterval(() => {
+            window.location.reload();
+        }, 4000);
+
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('helmsman-form');
             const directionInput = document.getElementById('helmsman-direction');

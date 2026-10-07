@@ -18,4 +18,9 @@ class GameRoom extends Model
     {
         return $this->hasMany(RoomPlayer::class)->orderBy('joined_at');
     }
+
+    public function series(): HasMany
+    {
+        return $this->hasMany(GameSeries::class)->orderBy('series_number');
+    }
 }
