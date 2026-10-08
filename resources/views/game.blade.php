@@ -99,6 +99,26 @@
             border: 1px solid var(--line);
             border-radius: 12px;
         }
+        .local-map {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 3px;
+            width: min(100%, 280px);
+            aspect-ratio: 1;
+            margin: 14px 0;
+            padding: 8px;
+            background: rgba(9, 23, 25, 0.7);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+        .local-map .tile {
+            min-height: 0;
+            aspect-ratio: 1;
+        }
+        .local-map .tile.outside {
+            background: transparent;
+            border: 1px dashed rgba(158, 193, 191, 0.22);
+        }
         .tile {
             display: flex;
             align-items: center;
@@ -112,27 +132,33 @@
         .tile.wall { background: var(--wall); }
         .tile.goal { background: rgba(141, 219, 160, 0.25); border: 1px solid rgba(141, 219, 160, 0.8); }
         .tile.ship {
-            background: linear-gradient(135deg, rgba(217,183,106,0.95), rgba(180,142,68,.9));
+            background: transparent;
         }
+        .tile.ship::before,
         .tile.ship::after {
             content: '';
-            display: block;
-            width: 68%;
-            height: 54%;
-            background: linear-gradient(90deg, #2f2a20 0%, #e8c76f 30%, #f4dc8d 100%);
-            border-radius: 20% 22% 18% 14%;
-            clip-path: polygon(0 35%, 62% 0, 100% 50%, 62% 100%, 0 65%, 18% 50%);
-            transform: rotate(var(--ship-angle, 0deg));
-            transform-origin: center;
-            transition: transform 0.25s ease, filter 0.25s ease;
-            box-shadow: inset -8px 0 0 rgba(16, 15, 15, 0.24);
+            position: absolute;
+            left: 14%;
+            top: 43%;
+            width: 72%;
+            height: 14%;
+            border-radius: 2px;
+            background: var(--ship);
+            box-shadow: 0 0 0 1px rgba(9, 23, 25, 0.9), 0 0 7px rgba(255, 220, 125, 0.6);
+        }
+        .tile.ship::before {
+            transform: rotate(45deg);
+        }
+        .tile.ship::after {
+            transform: rotate(-45deg);
         }
         .tile.ship.crash {
             background: linear-gradient(135deg, rgba(181, 52, 41, 0.96), rgba(108, 25, 21, 0.9));
         }
+        .tile.ship.crash::before,
         .tile.ship.crash::after {
-            background: linear-gradient(90deg, #2a1616 0%, #fe8a73 35%, #ffd2b8 100%);
-            box-shadow: inset -8px 0 0 rgba(65, 20, 20, 0.35);
+            background: #ff9278;
+            box-shadow: 0 0 0 1px rgba(45, 12, 12, 0.9), 0 0 8px rgba(255, 110, 82, 0.8);
         }
         .legend {
             display: flex;
@@ -371,7 +397,8 @@
     </style>
 </head>
 <body>
-    <div class="shell">
+    <div class="shell" data-game-running="{{ $run->status === 'running' ? 'true' : 'false' }}">
+        <span hidden data-refresh-countdown data-next-tick-at="{{ $nextTickAt?->toIso8601String() }}"></span>
         <header class="topbar">
             <div>
                 <p class="eyebrow">Crew / rozgrywka</p>
@@ -383,21 +410,11 @@
         <div class="grid {{ ($isCaptain ?? false) ? '' : 'single-panel' }}">
             @if (($isCaptain ?? false))
                 <section class="panel map-panel" aria-labelledby="map-heading">
-                    <h2 id="map-heading" style="margin:0; font-size: 24px;">Mapa testowa</h2>
+                    <h2 id="map-heading" style="margin:0; font-size: 24px;">Mapa</h2>
+                    <p class="helmsman-status" style="margin-top: 8px;">
+                        Podgląd odświeży się po ruchu statku · Czas do następnego ruchu: <strong data-decision-countdown data-next-tick-at="{{ $nextTickAt?->toIso8601String() }}">—</strong>
+                    </p>
                     <div class="map" aria-label="Mapa rozgrywki">
-                        @php
-                            $shipAngleMap = [
-                                'N' => '270deg',
-                                'NE' => '315deg',
-                                'E' => '0deg',
-                                'SE' => '45deg',
-                                'S' => '90deg',
-                                'SW' => '135deg',
-                                'W' => '180deg',
-                                'NW' => '225deg',
-                            ];
-                            $shipAngle = $shipAngleMap[$selectedDirection] ?? '0deg';
-                        @endphp
                         @for ($y = 0; $y < $mapSize; $y++)
                             @for ($x = 0; $x < $mapSize; $x++)
                                 @php
@@ -412,7 +429,7 @@
                                     $isGoal = $target['x'] === $x && $target['y'] === $y;
                                     $isCrash = $isShip && $isWall && ($run->outcome_reason ?? null) === 'obstacle';
                                 @endphp
-                                <div class="tile {{ $isWall ? 'wall' : '' }} {{ $isGoal ? 'goal' : '' }} {{ $isShip ? 'ship' : '' }} {{ $isCrash ? 'crash' : '' }}" aria-label="Pole {{ $x + 1 }}, {{ $y + 1 }}" @if ($isShip) style="--ship-angle: {{ $shipAngle }};" @endif></div>
+                                <div class="tile {{ $isWall ? 'wall' : '' }} {{ $isGoal ? 'goal' : '' }} {{ $isShip ? 'ship' : '' }} {{ $isCrash ? 'crash' : '' }}" aria-label="Pole {{ $x + 1 }}, {{ $y + 1 }}" @if ($isShip) data-ship-marker="x" @endif></div>
                             @endfor
                         @endfor
                     </div>
@@ -459,13 +476,39 @@
                         @endif
                     </div>
                 @elseif (($isHelmsman ?? false))
+                    <section class="helmsman-panel" aria-labelledby="local-map-heading">
+                        <p class="eyebrow">Otoczenie</p>
+                        <h3 id="local-map-heading" style="margin: 6px 0 0; font-size: 18px;">Okolica statku · 5 × 5</h3>
+                        <div class="local-map" data-local-map-size="5" aria-label="Pięć na pięć pól wokół statku">
+                            @for ($localY = -2; $localY <= 2; $localY++)
+                                @for ($localX = -2; $localX <= 2; $localX++)
+                                    @php
+                                        $x = $shipPosition['x'] + $localX;
+                                        $y = $shipPosition['y'] + $localY;
+                                        $isInsideMap = $x >= 0 && $y >= 0 && $x < $mapSize && $y < $mapSize;
+                                        $isWall = $isInsideMap && collect($obstacles)->contains(function ($cell) use ($x, $y) {
+                                            if (is_array($cell) && array_key_exists('x', $cell) && array_key_exists('y', $cell)) {
+                                                return (int) $cell['x'] === $x && (int) $cell['y'] === $y;
+                                            }
+
+                                            return is_array($cell) && isset($cell[0], $cell[1]) && (int) $cell[0] === $x && (int) $cell[1] === $y;
+                                        });
+                                        $isShip = $localX === 0 && $localY === 0;
+                                        $isGoal = $isInsideMap && $target['x'] === $x && $target['y'] === $y;
+                                        $isCrash = $isShip && $isWall && ($run->outcome_reason ?? null) === 'obstacle';
+                                    @endphp
+                                    <div class="tile {{ $isInsideMap ? '' : 'outside' }} {{ $isWall ? 'wall' : '' }} {{ $isGoal ? 'goal' : '' }} {{ $isShip ? 'ship' : '' }} {{ $isCrash ? 'crash' : '' }}" aria-label="{{ $isInsideMap ? 'Pole '.($x + 1).', '.($y + 1) : 'Poza mapą' }}" @if ($isShip) data-mini-ship="center" data-ship-marker="x" @endif></div>
+                                @endfor
+                            @endfor
+                        </div>
+                    </section>
                     <div class="helmsman-panel">
                         <div class="helmsman-header">
                             <div>
                                 <p class="eyebrow">Panel sternika</p>
                                 <h3>Ustaw kierunek</h3>
                             </div>
-                            <span class="cooldown-badge">15s</span>
+                            <span class="cooldown-badge">Blokada komendy: 15 s</span>
                         </div>
 
                         <form id="helmsman-form" action="{{ route('game.command.store') }}" method="POST">
@@ -473,6 +516,7 @@
                             <input type="hidden" name="direction" id="helmsman-direction" value="{{ $selectedDirection }}">
                             <input type="hidden" name="ship_heading" id="helmsman-ship-heading" value="{{ $selectedDirection }}">
                             <input type="hidden" name="cooldown_seconds" id="helmsman-cooldown" value="15">
+                            <input type="hidden" id="helmsman-last-command-at" value="{{ $lastCommandAt?->toIso8601String() }}">
 
                             <div class="compass" aria-label="Kompas kontrolny sterownika">
                                 @foreach (['NW', 'N', 'NE', 'W', 'CENTER', 'E', 'SW', 'S', 'SE'] as $direction)
@@ -491,13 +535,15 @@
                                     <strong id="selected-direction">{{ $selectedDirection }}</strong>
                                 </div>
                                 <div>
-                                    <span>Cooldown</span>
-                                    <strong>15 s</strong>
+                                    <span>Czas do następnego ruchu</span>
+                                    <strong id="decision-countdown" data-decision-countdown data-next-tick-at="{{ $nextTickAt?->toIso8601String() }}">—</strong>
                                 </div>
                             </div>
 
                             <button class="primary" type="submit" style="width:100%;">Zatwierdź kurs</button>
-                            <p class="helmsman-status" id="helmsman-status" aria-live="polite">Brak aktywnego rozkazu.</p>
+                            <p class="helmsman-status" id="helmsman-status" aria-live="polite">
+                                Wybierz kurs przed następnym ruchem. Po przyjęciu komendy obowiązuje osobna blokada zmiany przez 15 s.
+                            </p>
                         </form>
                     </div>
                 @endif
@@ -548,17 +594,67 @@
     </div>
 
     <script>
-        window.setInterval(() => {
-            window.location.reload();
-        }, 4000);
-
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('helmsman-form');
             const directionInput = document.getElementById('helmsman-direction');
             const shipHeadingInput = document.getElementById('helmsman-ship-heading');
             const selectedDirection = document.getElementById('selected-direction');
             const status = document.getElementById('helmsman-status');
+            const lastCommandInput = document.getElementById('helmsman-last-command-at');
             const directionButtons = [...document.querySelectorAll('.dir-btn[data-direction]')];
+            const decisionCountdowns = [...document.querySelectorAll('[data-decision-countdown]')];
+            const gameShell = document.querySelector('[data-game-running]');
+            const cooldownDurationMs = 15000;
+
+            const getRemainingCooldown = () => {
+                if (!lastCommandInput || !lastCommandInput.value) {
+                    return 0;
+                }
+
+                const lastCommandAt = new Date(lastCommandInput.value).getTime();
+                if (!Number.isFinite(lastCommandAt)) {
+                    return 0;
+                }
+
+                return Math.max(0, cooldownDurationMs - (Date.now() - lastCommandAt));
+            };
+
+            const getRemainingDecisionTime = (nextTickAt) => {
+                if (!nextTickAt) {
+                    return 0;
+                }
+
+                const nextTickTime = new Date(nextTickAt).getTime();
+                return Number.isFinite(nextTickTime) ? Math.max(0, nextTickTime - Date.now()) : 0;
+            };
+
+            const updateCooldownUi = () => {
+                const cooldownActive = Boolean(form) && getRemainingCooldown() > 0;
+
+                directionButtons.forEach((button) => {
+                    const isAllowed = button.dataset.allowed === 'true';
+                    const isAcceptedDirection = button.dataset.direction === directionInput.value;
+                    button.disabled = !isAllowed || (cooldownActive && !isAcceptedDirection);
+                    button.classList.toggle('disabled', button.disabled);
+                    button.classList.toggle('active', isAcceptedDirection);
+                    button.setAttribute('aria-pressed', isAcceptedDirection ? 'true' : 'false');
+                });
+
+                if (status && cooldownActive) {
+                    const remainingCooldownSeconds = Math.ceil(getRemainingCooldown() / 1000);
+                    status.textContent = `Kurs ${directionInput.value} został przyjęty przez załogę. Daj czas załodze na pracę: ${remainingCooldownSeconds}s.`;
+                    status.classList.add('ok');
+                    status.classList.remove('error');
+                } else if (status?.classList.contains('ok')) {
+                    status.textContent = 'Wybierz kurs przed następnym ruchem. Po przyjęciu komendy obowiązuje osobna blokada zmiany przez 15 s.';
+                    status.classList.remove('ok');
+                }
+
+                decisionCountdowns.forEach((countdown) => {
+                    const remainingSeconds = Math.ceil(getRemainingDecisionTime(countdown.dataset.nextTickAt) / 1000);
+                    countdown.textContent = `${remainingSeconds}s`;
+                });
+            };
 
             const setSelectedDirection = (direction) => {
                 if (!direction || !document.querySelector(`.dir-btn[data-direction="${direction}"]`)) {
@@ -567,6 +663,10 @@
 
                 const chosenButton = document.querySelector(`.dir-btn[data-direction="${direction}"]`);
                 if (!chosenButton || chosenButton.dataset.allowed !== 'true') {
+                    return;
+                }
+
+                if (getRemainingCooldown() > 0 && direction !== directionInput.value) {
                     return;
                 }
 
@@ -594,15 +694,24 @@
                 });
             });
 
-            if (directionInput.value) {
+            if (directionInput?.value) {
                 const currentButton = document.querySelector(`.dir-btn[data-direction="${directionInput.value}"]`);
                 if (currentButton) {
-                    currentButton.classList.toggle('active', false);
-                    currentButton.setAttribute('aria-pressed', 'false');
+                    currentButton.classList.toggle('active', true);
+                    currentButton.setAttribute('aria-pressed', 'true');
                 }
             }
 
-            form.addEventListener('submit', async (event) => {
+            updateCooldownUi();
+            window.setInterval(updateCooldownUi, 1000);
+
+            const nextTickAt = document.querySelector('[data-refresh-countdown]')?.dataset.nextTickAt;
+            if (gameShell?.dataset.gameRunning === 'true' && nextTickAt) {
+                const remainingMs = getRemainingDecisionTime(nextTickAt);
+                window.setTimeout(() => window.location.reload(), Math.max(1000, remainingMs + 100));
+            }
+
+            form?.addEventListener('submit', async (event) => {
                 event.preventDefault();
 
                 const payload = new FormData(form);
@@ -619,12 +728,26 @@
                     });
 
                     const data = await response.json();
-                    status.textContent = data.message || 'Polecenie przyjęte do kolejki.';
-                    status.classList.toggle('ok', response.ok);
-                    status.classList.toggle('error', !response.ok);
+                    if (!response.ok) {
+                        status.textContent = data.message || 'Polecenie zostało odrzucone.';
+                        status.classList.add('error');
+                        status.classList.remove('ok');
+                        return;
+                    }
+
+                    directionInput.value = data.payload.direction;
+                    shipHeadingInput.value = data.payload.direction;
+                    selectedDirection.textContent = data.payload.direction;
+                    lastCommandInput.value = new Date().toISOString();
+
+                    status.textContent = `Kurs ${data.payload.direction} został przyjęty przez. Poczekaj na stabilizację statku (15s.)`;
+                    status.classList.add('ok');
+                    status.classList.remove('error');
+                    updateCooldownUi();
                 } catch (error) {
                     status.textContent = 'Nie udało się wysłać danych. Spróbuj ponownie.';
                     status.classList.add('error');
+                    status.classList.remove('ok');
                 }
             });
         });

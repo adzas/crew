@@ -16,11 +16,14 @@ ten ekran na telefonie lub większym wyświetlaczu.
 - Pokój nie wymaga konta ani hasła; wejście odbywa się przez link/kod pokoju i
   wybór wolnej roli.
 - Pierwsza osoba otwierająca pokój zostaje gospodarzem i może uruchomić grę.
-- Statek ma stałą prędkość w MVP.
-- Każda rozgrywka używa innej, skończonej mapy.
+- Każda rozgrywka ma własną mapę, cel i stan statku; serwer zawsze jest
+  źródłem prawdy o pozycji i kierunku.
+- Role są rozdzielone: gospodarz zarządza pokojem, kapitan widzi pełną mapę,
+  sternik podaje kurs, a serwer rozlicza ticki i kończy rundę.
+- Seria składa się z trzech partii; po każdej rundzie host może uruchomić następną,
+  a po trzeciej pokazuje się podsumowanie całej serii.
 - Po godzinie bezczynności pokój i rozgrywka są resetowane.
-- Statek ma trzy stopnie uszkodzeń. W MVP służą do określenia przeżywalności;
-  później mogą wpływać na zachowanie statku.
+- Statek ma stałą prędkość i nie ma osobnego systemu obrażeń w MVP.
 
 ## Zakres dokumentacji
 

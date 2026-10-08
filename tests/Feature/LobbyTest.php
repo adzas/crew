@@ -10,6 +10,7 @@ use App\Models\PlayerJoinLog;
 use App\Models\Role;
 use App\Models\RoomPlayer;
 use App\Models\RoomPlayerRole;
+use App\Services\Lobby\RoomNameGenerator;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -34,6 +35,7 @@ class LobbyTest extends TestCase
         $roomPlayer = RoomPlayer::firstOrFail();
 
         $this->assertSame(6, strlen($room->code));
+        $this->assertContains($room->name, RoomNameGenerator::NAMES);
         $this->assertTrue($roomPlayer->is_host);
         $this->assertDatabaseHas('player_join_logs', ['room_player_id' => $roomPlayer->id]);
 
@@ -48,7 +50,7 @@ class LobbyTest extends TestCase
 
         $this->get(route('lobby'))
             ->assertOk()
-            ->assertSee('Zbiórka załogi')
+            ->assertSee($room->name)
             ->assertSee('Kapitan')
             ->assertSee('Ala');
     }

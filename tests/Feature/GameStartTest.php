@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\GameCommand;
 use App\Models\GameRoom;
 use App\Models\GameRun;
 use App\Models\GameSeries;
@@ -9,6 +10,7 @@ use App\Models\GameState;
 use App\Models\Role;
 use App\Models\RoomPlayer;
 use App\Models\RoomPlayerRole;
+use App\Services\Game\AdvanceDueGame;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -65,7 +67,14 @@ class GameStartTest extends TestCase
         $this->get(route('game'))
             ->assertOk()
             ->assertSee('Ekran główny rozgrywki')
-            ->assertSee('Mapa testowa')
+            ->assertSee('Mapa')
+            ->assertSee('Podgląd odświeży się po ruchu statku')
+            ->assertSee('Czas do następnego ruchu')
+            ->assertSee('data-decision-countdown')
+            ->assertSee('window.setTimeout')
+            ->assertDontSee('}, 4000);')
+            ->assertSee('data-ship-marker="x"', false)
+            ->assertDontSee('--ship-angle')
             ->assertSee('Zarządzanie stanowiskami')
             ->assertDontSee('Panel sternika');
 
@@ -193,11 +202,17 @@ class GameStartTest extends TestCase
             ->assertOk()
             ->assertSee('Panel sternika')
             ->assertSee('Ustaw kierunek')
-            ->assertDontSee('Mapa testowa')
+            ->assertSee('Okolica statku')
+            ->assertSee('data-local-map-size="5"', false)
+            ->assertSee('data-mini-ship="center"', false)
+            ->assertSee('data-ship-marker="x"', false)
+            ->assertDontSee('Podgląd odświeży się po ruchu statku')
             ->assertDontSee('Zarządzanie stanowiskami')
             ->assertSee('SE')
+            ->assertSee('Czas do następnego ruchu')
+            ->assertSee('data-decision-countdown')
             ->assertSee('window.setInterval')
-            ->assertSee('--ship-angle');
+            ->assertDontSee('--ship-angle');
 
         $this->postJson(route('game.command.store'), [
             'direction' => 'E',
@@ -208,7 +223,15 @@ class GameStartTest extends TestCase
             ->assertJsonPath('status', 'accepted')
             ->assertJsonPath('payload.direction', 'E');
 
-        $firstCommand = \App\Models\GameCommand::query()->firstOrFail();
+        $this->withSession([
+            'player_token' => str_repeat('j', 64),
+            'room_player_id' => $helmsman->id,
+        ])
+            ->get(route('game'))
+            ->assertOk()
+            ->assertSee('selected-direction');
+
+        $firstCommand = GameCommand::query()->firstOrFail();
         $this->assertSame('pending', $firstCommand->status);
 
         $this->travel(14)->seconds();
@@ -224,13 +247,25 @@ class GameStartTest extends TestCase
         $this->get(route('game'))->assertOk();
 
         $firstCommand->refresh();
-        $state = \App\Models\GameState::query()->where('game_run_id', $firstCommand->game_run_id)->firstOrFail();
+        $state = GameState::query()->where('game_run_id', $firstCommand->game_run_id)->firstOrFail();
         $this->assertSame('superseded', $firstCommand->status);
-        $this->assertSame('applied', \App\Models\GameCommand::query()->where('id', '!=', $firstCommand->id)->value('status'));
+        $this->assertSame('applied', GameCommand::query()->where('id', '!=', $firstCommand->id)->value('status'));
         $this->assertSame(4, $state->position_x);
         $this->assertSame(10, $state->position_y);
         $this->assertSame('S', $state->heading);
         $this->assertSame(1, $state->tick_number);
+
+        $advanceDueGame = \Mockery::mock(AdvanceDueGame::class);
+        $advanceDueGame->shouldReceive('advanceForRoom')
+            ->once()
+            ->with($room->id)
+            ->andReturnFalse();
+        $this->app->instance(AdvanceDueGame::class, $advanceDueGame);
+
+        $this->postJson(route('game.command.store'), ['direction' => 'E'])
+            ->assertStatus(503)
+            ->assertHeader('Retry-After', '1')
+            ->assertJsonPath('status', 'retryable_tick_conflict');
     }
 
     public function test_host_can_reassign_roles_even_after_changing_from_captain_to_helmsman(): void

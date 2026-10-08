@@ -118,7 +118,7 @@
             <p class="eyebrow">Pokój {{ $room->status === 'waiting' ? 'oczekuje na załogę' : 'w trakcie gry' }}</p>
             <div class="room-header">
                 <div>
-                    <h1 class="room-title">Zbiórka załogi</h1>
+                    <h1 class="room-title">{{ $room->name ?? 'Zbiórka załogi' }}</h1>
                     <p class="intro" style="margin-bottom:0">Wybierz wolne stanowisko. Skład pokoju odświeża się automatycznie.</p>
                 </div>
                 <div class="room-code">

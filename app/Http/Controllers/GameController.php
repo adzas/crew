@@ -13,10 +13,13 @@ use App\Services\Game\AdvanceDueGame;
 use App\Services\Game\CourseRules;
 use App\Services\Game\StartGameRun;
 use App\Services\Lobby\RoomPlayerContext;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class GameController extends Controller
@@ -92,9 +95,9 @@ class GameController extends Controller
 
         $run = GameRun::query()
             ->whereHas('series', fn ($query) => $query->where('game_room_id', $room->id))
-            ->with(['series.runs', 'state'])
+            ->with('state')
             ->latest('id')
-            ->firstOrFail();
+            ->first();
         $state = $run->state;
         abort_unless($state !== null, 500);
 
@@ -103,6 +106,18 @@ class GameController extends Controller
         $isCaptain = $effectiveRole?->slug === 'captain';
         $map = $run->map_data;
         $courseRules = app(CourseRules::class);
+        $pendingCommand = $run->commands()
+            ->where('status', 'pending')
+            ->orderByDesc('submitted_at')
+            ->first();
+        $pendingDirection = $pendingCommand?->payload;
+        if (is_string($pendingDirection)) {
+            $pendingDirection = json_decode($pendingDirection, true);
+        }
+        $pendingDirection = is_array($pendingDirection) && isset($pendingDirection['direction'])
+            ? $pendingDirection['direction']
+            : null;
+        $displayDirection = $pendingDirection ?? $state->heading;
 
         return view('game', [
             'room' => $room,
@@ -118,7 +133,10 @@ class GameController extends Controller
             'isHelmsman' => $isHelmsman,
             'isCaptain' => $isCaptain,
             'roles' => Role::query()->where('is_active', true)->orderBy('sort_order')->get(),
-            'selectedDirection' => $state->heading,
+            'selectedDirection' => $displayDirection,
+            'selectedDirectionSource' => $pendingDirection ? 'accepted' : 'live',
+            'lastCommandAt' => $state->last_command_at,
+            'nextTickAt' => $state->next_tick_at,
             'allowedDirections' => $courseRules->turnOptions($state->heading),
         ]);
     }
@@ -198,7 +216,13 @@ class GameController extends Controller
         $role = $context->effectiveRole($request, $roomPlayer);
         abort_unless($role?->slug === 'helmsman', 403);
 
-        $advanceDueGame->advanceForRoom($roomPlayer->game_room_id);
+        if (! $advanceDueGame->advanceForRoom($roomPlayer->game_room_id)) {
+            return response()->json([
+                'status' => 'retryable_tick_conflict',
+                'message' => 'Nie udało się teraz zaktualizować stanu gry. Spróbuj ponownie za chwilę.',
+            ], 503)->header('Retry-After', '1');
+        }
+
         $run = GameRun::query()
             ->whereHas('series', fn ($query) => $query->where('game_room_id', $roomPlayer->game_room_id))
             ->with('state')
@@ -211,59 +235,89 @@ class GameController extends Controller
 
         $courseRules = app(CourseRules::class);
         $validated = $request->validate([
-            'direction' => ['required', 'string', \Illuminate\Validation\Rule::in($courseRules->turnOptions($run->state->heading))],
+            'direction' => ['required', 'string', Rule::in($courseRules->turnOptions($run->state->heading))],
         ]);
         $now = now();
+        $attempt = 0;
 
-        return DB::transaction(function () use ($roomPlayer, $role, $run, $validated, $now) {
-            $state = $run->state()->lockForUpdate()->firstOrFail();
-            $lockedRun = GameRun::query()->whereKey($run->id)->lockForUpdate()->firstOrFail();
+        try {
+            return DB::transaction(function () use ($roomPlayer, $role, $run, $validated, $now, &$attempt) {
+                $attempt++;
+                if ($attempt > 1) {
+                    Log::warning('Retrying course command transaction after a deadlock.', [
+                        'game_run_id' => $run->id,
+                        'room_player_id' => $roomPlayer->id,
+                        'attempt' => $attempt,
+                    ]);
+                }
 
-            if ($lockedRun->status !== 'running') {
-                return response()->json(['status' => 'game_not_running'], 409);
-            }
+                $lockedRun = GameRun::query()->whereKey($run->id)->lockForUpdate()->firstOrFail();
+                $state = $lockedRun->state()->lockForUpdate()->firstOrFail();
 
-            if ($state->last_command_at && $state->last_command_at->copy()->addSeconds(15)->gt($now)) {
-                $retryAfter = $state->last_command_at->copy()->addSeconds(15)->timestamp - $now->timestamp;
+                if ($lockedRun->status !== 'running') {
+                    return response()->json(['status' => 'game_not_running'], 409);
+                }
 
-                return response()->json([
-                    'status' => 'cooldown',
-                    'retry_after_seconds' => max(1, $retryAfter),
-                ], 429);
-            }
+                if ($state->last_command_at && $state->last_command_at->copy()->addSeconds(15)->gt($now)) {
+                    $retryAfter = $state->last_command_at->copy()->addSeconds(15)->timestamp - $now->timestamp;
 
-            $command = GameCommand::create([
-                'game_run_id' => $lockedRun->id,
-                'player_id' => $roomPlayer->player_id,
-                'room_player_id' => $roomPlayer->id,
-                'role_id' => $role->id,
-                'command_type' => 'course',
-                'payload' => ['direction' => $validated['direction']],
-                'status' => 'pending',
-                'submitted_at' => $now,
-            ]);
+                    return response()->json([
+                        'status' => 'cooldown',
+                        'retry_after_seconds' => max(1, $retryAfter),
+                    ], 429);
+                }
 
-            GameCommand::query()
-                ->where('game_run_id', $lockedRun->id)
-                ->where('command_type', 'course')
-                ->where('status', 'pending')
-                ->where('id', '!=', $command->id)
-                ->update([
-                    'status' => 'superseded',
-                    'processed_at' => $now,
-                    'superseded_by_command_id' => $command->id,
+                $command = GameCommand::create([
+                    'game_run_id' => $lockedRun->id,
+                    'player_id' => $roomPlayer->player_id,
+                    'room_player_id' => $roomPlayer->id,
+                    'role_id' => $role->id,
+                    'command_type' => 'course',
+                    'payload' => ['direction' => $validated['direction']],
+                    'status' => 'pending',
+                    'submitted_at' => $now,
                 ]);
 
-            $state->last_command_at = $now;
-            $state->save();
+                GameCommand::query()
+                    ->where('game_run_id', $lockedRun->id)
+                    ->where('command_type', 'course')
+                    ->where('status', 'pending')
+                    ->where('id', '!=', $command->id)
+                    ->update([
+                        'status' => 'superseded',
+                        'processed_at' => $now,
+                        'superseded_by_command_id' => $command->id,
+                    ]);
+
+                $state->last_command_at = $now;
+                $state->save();
+
+                return response()->json([
+                    'status' => 'accepted',
+                    'message' => 'Polecenie kursu przyjęte do kolejki.',
+                    'command_id' => $command->id,
+                    'payload' => $command->payload,
+                ], 202);
+            }, attempts: 3);
+        } catch (QueryException $exception) {
+            if ((string) $exception->getCode() !== '40001'
+                && (int) ($exception->errorInfo[1] ?? 0) !== 1213) {
+                throw $exception;
+            }
+
+            Log::warning('Course command transaction exhausted its deadlock retries.', [
+                'game_run_id' => $run->id,
+                'room_player_id' => $roomPlayer->id,
+                'attempts' => 3,
+                'sql_state' => $exception->getCode(),
+                'driver_code' => $exception->errorInfo[1] ?? null,
+            ]);
 
             return response()->json([
-                'status' => 'accepted',
-                'message' => 'Polecenie kursu przyjęte do kolejki.',
-                'command_id' => $command->id,
-                'payload' => $command->payload,
-            ], 202);
-        });
+                'status' => 'retryable_command_conflict',
+                'message' => 'Nie udało się teraz zapisać kursu. Spróbuj ponownie za chwilę.',
+            ], 503)->header('Retry-After', '1');
+        }
     }
 
     private function ipHash(Request $request): ?string

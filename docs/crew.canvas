@@ -1,15 +1,25 @@
 {
 	"nodes":[
-		{"id":"deployment","type":"file","file":"development-and-deployment.md","x":520,"y":190,"width":400,"height":250},
-		{"id":"runtime","type":"text","text":"## Środowisko lokalne\n\nDocker Compose\nPHP 8.5-FPM + Nginx\nMariaDB 11.4\n\nURL: http://localhost:8080","x":1200,"y":-320,"width":320,"height":240,"color":"5"},
-		{"id":"overview","type":"file","file":"overview.md","x":-190,"y":-360,"width":380,"height":200},
-		{"id":"gameplay","type":"file","file":"gameplay.md","x":-190,"y":180,"width":380,"height":230},
-		{"id":"architecture","type":"file","file":"architecture.md","x":520,"y":-260,"width":400,"height":240}
+		{"id":"overview","type":"file","file":"overview.md","x":-260,"y":-350,"width":360,"height":180},
+		{"id":"gameplay","type":"file","file":"gameplay.md","x":-260,"y":180,"width":360,"height":260},
+		{"id":"architecture","type":"file","file":"architecture.md","x":420,"y":-260,"width":420,"height":250},
+		{"id":"deployment","type":"file","file":"development-and-deployment.md","x":420,"y":210,"width":420,"height":250},
+		{"id":"summary","type":"text","text":"Podsumowanie\n• wynik rundy\n• ruchy i ocena\n• kolejna runda / seria","x":980,"y":295,"width":250,"height":170,"color":"1"},
+		{"id":"lobby","type":"text","text":"Lobby\n• host tworzy pokój\n• gracze dołączają\n• wybór ról","x":980,"y":-220,"width":220,"height":150,"color":"5"},
+		{"id":"roles","type":"text","text":"Role\n• Gospodarz\n• Kapitan\n• Sternik\n• reszta: tylko widok","x":1340,"y":-220,"width":230,"height":170,"color":"6"},
+		{"id":"start","type":"text","text":"Start rundy\n• serwer tworzy serię\n• tworzy mapę i stan\n• weryfikuje role","x":1450,"y":50,"width":240,"height":160,"color":"4"},
+		{"id":"tick","type":"text","text":"Tick serwera\n• 20 s\n• ruch w przód\n• boundary / obstacle / target","x":1280,"y":600,"width":240,"height":180,"color":"2"},
+		{"id":"command","type":"text","text":"Polecenia\n• sternik wysyła kurs\n• cooldown 15 s\n• poprzednie polecenie jest zastępowane","x":1500,"y":375,"width":240,"height":170,"color":"3"}
 	],
 	"edges":[
-		{"id":"overview-gameplay","fromNode":"overview","fromSide":"bottom","toNode":"gameplay","toSide":"top","label":"opisuje zasady"},
-		{"id":"overview-architecture","fromNode":"overview","fromSide":"right","toNode":"architecture","toSide":"left","label":"wyznacza kierunek"},
-		{"id":"architecture-runtime","fromNode":"architecture","fromSide":"right","toNode":"runtime","toSide":"left","label":"lokalny skład"},
-		{"id":"architecture-deployment","fromNode":"architecture","fromSide":"bottom","toNode":"deployment","toSide":"top","label":"wdrożenie"}
+		{"id":"overview-gameplay","fromNode":"overview","fromSide":"bottom","toNode":"gameplay","toSide":"top","label":"zasady"},
+		{"id":"overview-architecture","fromNode":"overview","fromSide":"right","toNode":"architecture","toSide":"left","label":"struktura"},
+		{"id":"architecture-deployment","fromNode":"architecture","fromSide":"bottom","toNode":"deployment","toSide":"top","label":"wdrożenie"},
+		{"id":"lobby-roles","fromNode":"lobby","fromSide":"right","toNode":"roles","toSide":"left","label":"role"},
+		{"id":"roles-start","fromNode":"roles","fromSide":"bottom","toNode":"start","toSide":"top","label":"start"},
+		{"id":"start-command","fromNode":"start","fromSide":"bottom","toNode":"command","toSide":"top","label":"sterowanie"},
+		{"id":"command-tick","fromNode":"command","fromSide":"bottom","toNode":"tick","toSide":"right","label":"tick"},
+		{"id":"tick-summary","fromNode":"tick","fromSide":"left","toNode":"summary","toSide":"bottom","label":"wynik"},
+		{"id":"summary-lobby","fromNode":"summary","fromSide":"top","toNode":"lobby","toSide":"bottom","label":"następna runda"}
 	]
 }

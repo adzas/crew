@@ -25,6 +25,20 @@
 - Reset bezczynnego pokoju po godzinie powinien być realizowany po stronie
   serwera, nie przez timer działający wyłącznie w przeglądarce.
 
+## Proces gry i role
+
+Przepływ jest prosty i liniowy, ale z rozdzieleniem odpowiedzialności:
+
+1. Gospodarz tworzy pokój i uruchamia grę po obsadzeniu Kapitana i Sternika.
+2. Serwer tworzy nową serię i pierwszą partię z mapą, statkiem i stanem początkowym.
+3. Kapitan widzi pełną mapę, a Sternik tylko swoje polecenia sterujące.
+4. Sternik wysyła kierunek; serwer zapisuje polecenie, sprawdza cooldown i
+   podmienia wcześniejsze nieprzetworzone polecenie w tej samej rundzie.
+5. `advanceDue` rozlicza ticki po czasie serwera; ruch, kolizja z granicą,
+   kolizja z przeszkodą i osiągnięcie celu zapisują się jako osobne ticki.
+6. Po zakończeniu rundy gospodarz widzi podsumowanie, może uruchomić następną
+   partię, a po trzeciej rundzie podpisuje się zakończenie całej serii.
+
 To są kierunki projektowe, nie zaimplementowane jeszcze kontrakty API.
 
 Kolejność prac, kryteria ukończenia i bramka stabilnych testów lokalnych są

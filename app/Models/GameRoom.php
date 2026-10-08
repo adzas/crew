@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GameRoom extends Model
 {
-    protected $fillable = ['code', 'status', 'last_activity_at'];
+    protected $fillable = ['code', 'name', 'status', 'last_activity_at'];
 
     protected function casts(): array
     {
