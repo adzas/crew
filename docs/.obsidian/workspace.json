@@ -11,14 +11,17 @@
             "id": "17c772a1e927f9a3",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "canvas",
               "state": {
-                "file": "gameplay.md",
-                "mode": "source",
-                "source": false
+                "file": "crew.canvas",
+                "viewState": {
+                  "x": 781.5309347077985,
+                  "y": 184.4952016850213,
+                  "zoom": -1.0050600933549323
+                }
               },
-              "icon": "lucide-file",
-              "title": "gameplay"
+              "icon": "lucide-layout-dashboard",
+              "title": "crew"
             }
           }
         ]
@@ -190,9 +193,9 @@
   },
   "active": "17c772a1e927f9a3",
   "lastOpenFiles": [
+    "gameplay.md",
     "crew.canvas",
     "development-and-deployment.md",
-    "gameplay.md",
     "architecture.md",
     "overview.md"
   ]

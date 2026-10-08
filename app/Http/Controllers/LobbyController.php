@@ -9,6 +9,7 @@ use App\Models\PlayerJoinLog;
 use App\Models\Role;
 use App\Models\RoomPlayer;
 use App\Models\RoomPlayerRole;
+use App\Services\Lobby\RoomNameGenerator;
 use App\Services\Lobby\RoomPlayerContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,7 +43,7 @@ class LobbyController extends Controller
         ]);
     }
 
-    public function join(Request $request): RedirectResponse
+    public function join(Request $request, RoomNameGenerator $roomNameGenerator): RedirectResponse
     {
         $request->merge(['room_code' => $request->filled('room_code') ? strtoupper(trim($request->input('room_code'))) : null]);
         $validated = $request->validate([
@@ -59,7 +60,7 @@ class LobbyController extends Controller
         $ipHash = $this->ipHash($request);
         $userAgent = Str::limit((string) $request->userAgent(), 1000, '');
 
-        $result = DB::transaction(function () use ($validated, $sessionToken, $ipHash, $userAgent) {
+        $result = DB::transaction(function () use ($validated, $sessionToken, $ipHash, $userAgent, $roomNameGenerator) {
             $player = Player::firstOrCreate(
                 ['session_key_hash' => hash_hmac('sha256', $sessionToken, (string) config('app.key'))],
                 ['public_id' => (string) Str::uuid()],
@@ -67,7 +68,12 @@ class LobbyController extends Controller
 
             $room = filled($validated['room_code'] ?? null)
                 ? GameRoom::query()->where('code', $validated['room_code'])->where('status', 'waiting')->lockForUpdate()->first()
-                : GameRoom::create(['code' => $this->newRoomCode(), 'status' => 'waiting', 'last_activity_at' => now()]);
+                : GameRoom::create([
+                    'code' => $this->newRoomCode(),
+                    'name' => $roomNameGenerator->generate(),
+                    'status' => 'waiting',
+                    'last_activity_at' => now(),
+                ]);
 
             if (! $room) {
                 $this->recordAction($player, null, null, 'room.join', 'rejected', ['reason' => 'room_not_found'], $ipHash, $userAgent);
