@@ -12,20 +12,37 @@ ten ekran na telefonie lub większym wyświetlaczu.
 
 ## Ustalone decyzje
 
-- Rozgrywka jest wspólna i asynchroniczna w krótkich krokach symulacji.
+- Rozgrywka jest kooperacyjna, a świat aktualizuje się w krótkich, serwerowych
+  krokach symulacji.
 - Pokój nie wymaga konta ani hasła; wejście odbywa się przez link/kod pokoju i
   wybór wolnej roli.
-- Pierwsza osoba otwierająca pokój zostaje gospodarzem i może uruchomić grę.
+- Pierwsza osoba otwierająca pokój zostaje gospodarzem. Gospodarz uruchamia
+  grę i może zmieniać role podczas rozgrywki.
 - Każda rozgrywka ma własną mapę, cel i stan statku; serwer zawsze jest
   źródłem prawdy o pozycji i kierunku.
-- Role są rozdzielone: gospodarz zarządza pokojem, kapitan widzi pełną mapę,
-  sternik podaje kurs, a serwer rozlicza ticki i kończy rundę.
-- Seria składa się z trzech partii; po każdej rundzie host może uruchomić następną,
-  a po trzeciej pokazuje się podsumowanie całej serii.
-- Po godzinie bezczynności pokój i rozgrywka są resetowane.
-- Statek ma stałą prędkość i nie ma osobnego systemu obrażeń w MVP.
+- Seria składa się z trzech partii; gospodarz może uruchomić następną po
+  zakończeniu poprzedniej. Podsumowanie całej serii pozostaje do wdrożenia.
+- Statek porusza się w tickach co 20 sekund. Polecenie Sternika ma cooldown
+  15 sekund, oba czasy egzekwuje serwer.
+- W aktualnej wersji Kapitan widzi pełną mapę, a Sternik lokalny podgląd 5×5
+  i panel kursu. Docelowo Kapitan ma widzieć mapę niepełną, uzupełnianą
+  raportami ról informacyjnych.
+- Minimalny skład startowy to Kapitan i Sternik. Docelowa załoga liczy 4–6 osób;
+  aplikacja nie egzekwuje jeszcze limitu uczestników.
+- Po godzinie bezczynności pokój nie jest jeszcze automatycznie resetowany.
+- Statek ma stałą prędkość; MVP nie zawiera osobnego systemu obrażeń.
+
+## Stan funkcji
+
+Lobby, role aktywne Kapitana i Sternika, serwerowy stan gry, generowanie map,
+przyjmowanie poleceń, rozliczanie ticków, widoki ról i kolejne partie są
+zaimplementowane. Lokalizator i Bocianie gniazdo są obecnie rolami nieaktywnymi;
+skany, raporty i docelowa asymetria mapy nie są jeszcze dostępne.
 
 ## Zakres dokumentacji
 
 Szczegółowy zakres pierwszej wersji jest w [zasadach gry](gameplay.md), a
-przepływ komponentów pokazuje [Canvas](crew.canvas).
+decyzje techniczne opisuje [architektura](architecture.md). Kolejność i status
+prac przedstawia [plan wdrożenia](development-and-deployment.md#plan-wdrozenia-rozgrywki),
+a następny przyrost opisuje [plan rozbudowy multiplayer](multiplayer-role-expansion-plan.md).
+Przepływ komponentów pokazuje [Canvas](crew.canvas).

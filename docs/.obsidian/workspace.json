@@ -15,14 +15,59 @@
               "state": {
                 "file": "crew.canvas",
                 "viewState": {
-                  "x": 781.5309347077985,
-                  "y": 184.4952016850213,
-                  "zoom": -1.0050600933549323
+                  "x": 701.7545345370172,
+                  "y": 174.61666934501693,
+                  "zoom": -2.0743720452393544
                 }
               },
               "icon": "lucide-layout-dashboard",
               "title": "crew"
-            }
+            },
+            "group": "c11fdda36e5534a4"
+          }
+        ]
+      },
+      {
+        "id": "e63f00f4eb4028cf",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1cc5111107fa1bf6",
+            "type": "leaf",
+            "state": {
+              "type": "localgraph",
+              "state": {
+                "file": "crew.canvas",
+                "options": {
+                  "collapse-filter": true,
+                  "search": "",
+                  "localJumps": 1,
+                  "localBacklinks": true,
+                  "localForelinks": true,
+                  "localInterlinks": false,
+                  "showTags": false,
+                  "showAttachments": false,
+                  "hideUnresolved": false,
+                  "collapse-color-groups": true,
+                  "colorGroups": [],
+                  "collapse-display": true,
+                  "showArrow": false,
+                  "textFadeMultiplier": 0,
+                  "nodeSizeMultiplier": 1,
+                  "lineSizeMultiplier": 1,
+                  "collapse-forces": true,
+                  "centerStrength": 0.518713248970312,
+                  "repelStrength": 10,
+                  "linkStrength": 1,
+                  "linkDistance": 250,
+                  "scale": 1,
+                  "close": false
+                }
+              },
+              "icon": "lucide-git-fork",
+              "title": "Graf: crew"
+            },
+            "group": "c11fdda36e5534a4"
           }
         ]
       }
@@ -86,7 +131,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "right": {
     "id": "a447e4bdcbd99c37",
@@ -193,10 +238,11 @@
   },
   "active": "17c772a1e927f9a3",
   "lastOpenFiles": [
-    "gameplay.md",
-    "crew.canvas",
+    "multiplayer-role-expansion-plan.md",
     "development-and-deployment.md",
-    "architecture.md",
-    "overview.md"
+    "gameplay.md",
+    "overview.md",
+    "crew.canvas",
+    "architecture.md"
   ]
 }

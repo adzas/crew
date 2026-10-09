@@ -54,10 +54,14 @@ Port aplikacji na komputerze to `8080`.
 - [Zasady gry i MVP](docs/gameplay.md)
 - [Architektura i decyzje techniczne](docs/architecture.md)
 - [Uruchomienie i wdrożenie](docs/development-and-deployment.md)
+- [Plan rozbudowy multiplayer](docs/multiplayer-role-expansion-plan.md)
 - [Mapa dokumentacji w Obsidian Canvas](docs/crew.canvas)
 
 ## Stan prac
 
-Lobby pozwala utworzyć pokój lub dołączyć kodem, zobaczyć skład załogi i zająć
-wolną rolę. Kapitan i Sternik są aktywni; pozostałe role są widoczne, ale
-wyłączone. Symulacja, mapa i ekran gry pozostają kolejnymi etapami.
+Lobby pozwala tworzyć nazwane pokoje, dołączać kodem i zajmować wolne role.
+Kapitan i Sternik są aktywni; Lokalizator, Bocianie gniazdo i pozostałe role są
+widoczne, ale wyłączone. Działa serwerowa rozgrywka tickowa, mapa 20×20,
+sterowanie Sternika, mapa Kapitana, lokalny podgląd 5×5 Sternika oraz partie
+grupowane w serie po trzy. Rozbudowa o role informacyjne i niepełną mapę
+Kapitana jest planowana w [planie multiplayer](docs/multiplayer-role-expansion-plan.md).

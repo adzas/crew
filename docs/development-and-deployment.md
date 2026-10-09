@@ -57,42 +57,35 @@ Rozwój gry jest podzielony na przyrosty. Każdy etap kończy się testami
 akceptacyjnymi oraz kontrolą formatowania i diagnostyki. Nie rozpoczynamy
 kolejnego etapu, jeśli jego kontrakt lub testy poprzedniego nie są stabilne.
 
-1. **Stabilizacja testów lokalnych.** Zakończona: obraz PHP zawiera `pdo_sqlite`,
-   a opisana wyżej komenda uruchamia suitę na SQLite in-memory.
-2. **Reguły MVP.** Ustalone: mapa 20x20, ruch tylko w przód względem dziobu
-   w ośmiu kierunkach, ruch po skosie dozwolony, jeśli docelowe pole jest legalne,
-   kolizja z granicą lub przeszkodą kończy partię, bez osobnego systemu obrażeń,
-   start wymaga Kapitana i Sternika. Cooldown wynosi 15 sekund, tick 20 sekund,
-   ostatni dozwolony kurs pozostaje aktywny; seria ma trzy ręcznie uruchamiane
-   partie. Kryterium: sporne przypadki mechaniki opisują jednoznaczne testy.
-3. **Start i trwały stan partii.** Dodać zapis serii z trzema partiami, mapy i
-   początkowego stanu statku. Start dostępny tylko gospodarzowi, transakcyjny i
-   dozwolony po obsadzeniu obu ról. Kolejne partie gospodarz uruchamia ręcznie
-   po podsumowaniu. Kryterium: start tworzy dokładnie jedną serię/partię, a
-   próby nieuprawnione, przedwczesne i powtórne nie duplikują stanu.
-4. **Polecenia graczy.** Zapisywać polecenia niezależnie od ogólnego logu akcji;
-   serwer sprawdza rolę, stan gry, poprawność danych i cooldown 15 sekund oraz
-   zachowuje historię poleceń zastąpionych przed tickiem. Kryterium: testy
-   poprawnych i odrzuconych poleceń oraz łączenia poleceń ról.
-5. **Symulacja świata.** Wydzielić deterministyczny krok serwerowy co 20 sekund,
-   zastosować polecenia i kurs, zapisać każdą pozycję, rozstrzygnąć kolizje i
-   koniec gry oraz zabezpieczyć tick przed podwójnym wykonaniem. Kryterium:
-   reguły domenowe mają testy brzegowe, a ponowiony tick nie dubluje skutków.
-6. **Ekrany ról.** Podłączyć ekran główny, pełną mapę Kapitana i panel Sternika
-   do trwałych projekcji stanu; klient wysyła komendy, lecz nie rozstrzyga
-   symulacji. Wynik partii pokazuje udane ruchy i pozostałą legalną trasę.
-   Kryterium: testy uprawnień i braku wycieku mapy, ręczny test dwóch kart.
-7. **Koniec, seria i utrzymanie.** Blokować komendy po wyniku, zachować historię
-   partii, pozwolić gospodarzowi uruchomić następną oraz po trzeciej pokazać
-   podsumowanie serii. Dodać reset pokoju po godzinie bezczynności. Ticki
-   nadrabia `advanceDue` wywoływane przy odczycie stanu i zapisie komendy,
-   niezależnie od dostępności schedulera. Kryterium: pełny test lobby -> trzy
-   partie -> podsumowanie i ponowne uruchomienie pokoju.
+1. **Stabilizacja testów lokalnych.** Ukończona: PHP zawiera `pdo_sqlite`, a
+   pełna suita uruchamia się na SQLite in-memory.
+2. **Reguły MVP.** Ukończone i pokryte testami: mapa 20×20, ruch naprzód z
+   utrzymaniem kursu lub skrętem o 45°, kolizje kończące partię, start po
+   obsadzeniu Kapitana i Sternika, cooldown 15 sekund i tick co 20 sekund.
+   Statek ma stałą prędkość, bez osobnego systemu obrażeń.
+3. **Trwały stan i start partii.** Ukończone: serie i partie mają trwałe
+   rekordy, mapy są generowane z zapisanym seedem, a gospodarz uruchamia grę
+   po obsadzeniu wymaganych ról.
+4. **Polecenia i ticki.** Ukończone dla Sternika: serwerowa autoryzacja,
+   walidacja kursu i cooldownu, historia zastąpionych komend, transakcyjne
+   ticki idempotentne z ponawianiem transakcji po deadlocku.
+5. **Widoki ról.** Ukończone w obecnym zakresie: Kapitan otrzymuje pełną mapę,
+   Sternik mapę lokalną 5×5 i panel sterowania. Widok pokazuje X statku oraz
+   licznik odświeżany względem `next_tick_at`. Niepełna mapa Kapitana i raporty
+   dodatkowych ról są osobnym, przyszłym etapem.
+6. **Wynik i kolejne partie.** Ukończone częściowo: ekran wyniku pojedynczej
+   partii i możliwość uruchomienia kolejnej działają. Seria obejmuje trzy
+   partie; podsumowanie zbiorcze i reset pokoju po godzinie bezczynności
+   pozostają do wdrożenia.
+7. **Rozbudowa ról informacyjnych.** Zaplanowana; szczegółowa checklista,
+   zatwierdzone decyzje i status fundamentów znajdują się w
+   [planie rozbudowy multiplayer](multiplayer-role-expansion-plan.md).
 
-Etap 1 jest bramką dla całego rozwoju i został uzgodniony. Trwały stan blokuje
-komendy i symulację. Ekrany można integrować po ustaleniu projekcji stanu;
-klient nie rozstrzyga mechaniki. Generator mapy musi tworzyć osiągalny cel, a
-`advanceDue` rozlicza opóźnione ticki według czasu serwera.
+Aktualna implementacja nie ogranicza liczby uczestników w pokoju, mimo że
+docelowa załoga ma liczyć 4–6 graczy. Rozliczanie ticków nadrabia zaległości
+przy odczycie gry lub zapisie komendy; bez ruchu HTTP nie ma gwarancji
+ciągłego postępu. Kolizja z przeszkodą i wyjście poza granicę zapisują pozycję
+końcową odmiennie; szczegóły opisano w [zasadach gry](gameplay.md).
 
 `docker compose down` zatrzymuje i usuwa kontenery, ale pozostawia wolumen bazy.
 Usunięcie danych wymaga jawnego `docker compose down -v`.
@@ -117,6 +110,8 @@ uruchomić go na hostingu współdzielonym.
 
 ## Stan funkcji
 
-Lobby, pokoje, anonimowi gracze, wybór ról i logi zdarzeń są dostępne po
-uruchomieniu migracji i seederów. Mechanikę gry, mapę oraz widoki kapitana i
-sternika dodamy w kolejnych etapach.
+Lobby, pokoje, anonimowi gracze, aktywne role, nazwy pokoi, mechanika serwerowa,
+mapa, polecenia Kapitana/Sternika i wynik pojedynczej partii są dostępne po
+uruchomieniu migracji i seederów. Dodatkowe role informacyjne, niepełna mapa
+Kapitana, podsumowanie serii i reset bezczynności są planowane, ale
+niezaimplementowane.

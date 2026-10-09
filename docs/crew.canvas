@@ -4,16 +4,18 @@
 		{"id":"gameplay","type":"file","file":"gameplay.md","x":-260,"y":180,"width":360,"height":260},
 		{"id":"architecture","type":"file","file":"architecture.md","x":420,"y":-260,"width":420,"height":250},
 		{"id":"deployment","type":"file","file":"development-and-deployment.md","x":420,"y":210,"width":420,"height":250},
-		{"id":"summary","type":"text","text":"Podsumowanie\n• wynik rundy\n• ruchy i ocena\n• kolejna runda / seria","x":980,"y":295,"width":250,"height":170,"color":"1"},
+		{"id":"summary","type":"text","text":"Podsumowanie partii\n• wynik\n• liczba ruchów\n• kolejna partia\n• podsumowanie serii: planowane","x":980,"y":295,"width":270,"height":190,"color":"1"},
 		{"id":"lobby","type":"text","text":"Lobby\n• host tworzy pokój\n• gracze dołączają\n• wybór ról","x":980,"y":-220,"width":220,"height":150,"color":"5"},
-		{"id":"roles","type":"text","text":"Role\n• Gospodarz\n• Kapitan\n• Sternik\n• reszta: tylko widok","x":1340,"y":-220,"width":230,"height":170,"color":"6"},
+		{"id":"roles","type":"text","text":"Role\n• Gospodarz: zarządza pokojem\n• Kapitan: pełna mapa (obecnie)\n• Sternik: kurs i mapa 5×5\n• Lokalizator i Bocianie gniazdo: planowane","x":1490,"y":-220,"width":300,"height":220,"color":"6"},
 		{"id":"start","type":"text","text":"Start rundy\n• serwer tworzy serię\n• tworzy mapę i stan\n• weryfikuje role","x":1450,"y":50,"width":240,"height":160,"color":"4"},
 		{"id":"tick","type":"text","text":"Tick serwera\n• 20 s\n• ruch w przód\n• boundary / obstacle / target","x":1280,"y":600,"width":240,"height":180,"color":"2"},
-		{"id":"command","type":"text","text":"Polecenia\n• sternik wysyła kurs\n• cooldown 15 s\n• poprzednie polecenie jest zastępowane","x":1500,"y":375,"width":240,"height":170,"color":"3"}
+		{"id":"command","type":"text","text":"Polecenia\n• sternik wysyła kurs\n• cooldown 15 s\n• oczekujące polecenie może być zastąpione","x":1500,"y":375,"width":260,"height":180,"color":"3"},
+		{"id":"multiplayer-plan","type":"file","file":"multiplayer-role-expansion-plan.md","x":400,"y":-720,"width":440,"height":300}
 	],
 	"edges":[
 		{"id":"overview-gameplay","fromNode":"overview","fromSide":"bottom","toNode":"gameplay","toSide":"top","label":"zasady"},
 		{"id":"overview-architecture","fromNode":"overview","fromSide":"right","toNode":"architecture","toSide":"left","label":"struktura"},
+		{"id":"overview-multiplayer-plan","fromNode":"overview","fromSide":"right","toNode":"multiplayer-plan","toSide":"left","label":"plan ról"},
 		{"id":"architecture-deployment","fromNode":"architecture","fromSide":"bottom","toNode":"deployment","toSide":"top","label":"wdrożenie"},
 		{"id":"lobby-roles","fromNode":"lobby","fromSide":"right","toNode":"roles","toSide":"left","label":"role"},
 		{"id":"roles-start","fromNode":"roles","fromSide":"bottom","toNode":"start","toSide":"top","label":"start"},

@@ -20,8 +20,9 @@
   zapisuje polecenie do wykonania w kroku symulacji.
 - Sprzeczne polecenia tego samego gracza/stanowiska zastępują się zgodnie z
   regułą ostatniej akcji.
-- Widoki otrzymują tylko informacje przeznaczone dla danej roli. Kapitan widzi
-  pełną mapę; ekran główny pokazuje statek i bliskie otoczenie.
+- Widoki otrzymują informacje zależnie od roli. Obecnie Kapitan widzi pełną
+  mapę, a Sternik lokalną siatkę 5×5 i panel kursu. Docelowo Kapitan ma
+  otrzymywać niepełną mapę uzupełnianą raportami innych ról.
 - Reset bezczynnego pokoju po godzinie powinien być realizowany po stronie
   serwera, nie przez timer działający wyłącznie w przeglądarce.
 
@@ -31,20 +32,24 @@ Przepływ jest prosty i liniowy, ale z rozdzieleniem odpowiedzialności:
 
 1. Gospodarz tworzy pokój i uruchamia grę po obsadzeniu Kapitana i Sternika.
 2. Serwer tworzy nową serię i pierwszą partię z mapą, statkiem i stanem początkowym.
-3. Kapitan widzi pełną mapę, a Sternik tylko swoje polecenia sterujące.
-4. Sternik wysyła kierunek; serwer zapisuje polecenie, sprawdza cooldown i
-   podmienia wcześniejsze nieprzetworzone polecenie w tej samej rundzie.
+3. Kapitan widzi pełną mapę, a Sternik lokalną mapę 5×5 i dostępne polecenia.
+4. Sternik wysyła kurs: utrzymanie kierunku albo skręt o 45° w lewo/prawo.
+  Serwer autoryzuje rolę, sprawdza cooldown i zachowuje historię poleceń;
+  najnowsze oczekujące polecenie zastępuje wcześniejsze.
 5. `advanceDue` rozlicza ticki po czasie serwera; ruch, kolizja z granicą,
    kolizja z przeszkodą i osiągnięcie celu zapisują się jako osobne ticki.
-6. Po zakończeniu rundy gospodarz widzi podsumowanie, może uruchomić następną
-   partię, a po trzeciej rundzie podpisuje się zakończenie całej serii.
+6. Po zakończeniu rundy gospodarz widzi podsumowanie partii i może uruchomić
+  następną. Seria zawiera trzy partie; podsumowanie zbiorcze pozostaje do
+  wdrożenia.
 
-To są kierunki projektowe, nie zaimplementowane jeszcze kontrakty API.
+Opis przedstawia aktualny przepływ zaimplementowany dla Kapitana i Sternika.
+Kontrakty skanów oraz raportów ról informacyjnych nie są jeszcze
+zaimplementowane.
 
-Kolejność prac, kryteria ukończenia i bramka stabilnych testów lokalnych są
-opisane w [planie wdrożenia](development-and-deployment.md#plan-wdrożenia-rozgrywki).
-Do czasu zamknięcia etapu reguł mechaniki nie należy utrwalać w schemacie
-nieuzgodnionych założeń, takich jak rozmiar mapy lub prędkość statku.
+Kolejność prac, status etapów i kryteria stabilizacji są opisane w
+[planie wdrożenia](development-and-deployment.md#plan-wdrożenia-rozgrywki).
+Kolejny przyrost ról, skanów i niepełnej mapy opisuje [plan rozbudowy
+multiplayer](multiplayer-role-expansion-plan.md).
 
 ## Schemat lobby
 
@@ -88,15 +93,21 @@ stanu symulacji. Mechanika korzysta z osobnych rekordów:
   przed i po ruchu oraz zastosowanymi poleceniami.
 
 Każda partia ma własną mapę i stan. Porażka lub zwycięstwo kończy partię, ale
-nie usuwa jej danych; gospodarz ręcznie uruchamia następną z serii. Po trzeciej
-partii seria otrzymuje końcowe podsumowanie. Cooldown Sternika wynosi 15 sekund,
-a krok symulacji 20 sekund. Serwer waliduje komendy i jest jedynym źródłem
-prawdy o pozycji.
+nie usuwa jej danych; gospodarz ręcznie uruchamia następną z serii. Seria
+obejmuje trzy partie, ale ekran jej zbiorczego podsumowania pozostaje do
+wdrożenia. Cooldown Sternika wynosi 15 sekund, a krok symulacji 20 sekund.
+Serwer waliduje komendy i jest jedynym źródłem prawdy o pozycji.
 
-Tick musi być idempotentny: rekord stanu jest blokowany w transakcji, a numer
-ticka jest unikalny w obrębie partii. Szczegóły wyzwalania ticków zależą od
-możliwości schedulera na docelowym hostingu; decyzja nie może przenosić
-rozstrzygania symulacji do przeglądarki.
+Tick jest idempotentny: stan jest blokowany w transakcji, numer ticka jest
+unikalny w obrębie partii, a `advanceDue` ponawia transakcję w przypadku
+deadlocka. Odczyt widoku lub zapis komendy rozlicza należne ticki według czasu
+serwera. Ciągły postęp świata bez żądań HTTP ani zewnętrznego schedulera nie
+jest gwarantowany.
+
+W aktualnym modelu lobby każdy uczestnik może mieć jedną rolę, a każda rola
+może być zajęta przez jednego uczestnika. Aktywne są Kapitan i Sternik;
+pozostałe role są nieaktywne. Pokój nie ma jeszcze zaimplementowanego limitu
+liczby uczestników.
 ## Środowisko lokalne
 
 `docker-compose.yaml` uruchamia trzy usługi: `app` (PHP-FPM), `nginx` i `db`
