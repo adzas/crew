@@ -56,6 +56,48 @@ Port aplikacji na komputerze to `8080`.
 - [Uruchomienie i wdrożenie](docs/development-and-deployment.md)
 - [Plan rozbudowy multiplayer](docs/multiplayer-role-expansion-plan.md)
 - [Mapa dokumentacji w Obsidian Canvas](docs/crew.canvas)
+- [Specyfikacje OpenSpec](openspec/project.md)
+- [Proces propozycji OpenSpec](openspec/changes/README.md)
+
+## Współpraca nad zmianami
+
+OpenSpec opisuje wymagania i uzgodniony zakres zmian. `openspec/specs/`
+zawiera aktualne zachowanie systemu, a `openspec/changes/` — propozycje
+zmian, które jeszcze nie zostały wdrożone. Przed zmianą zachowania gry lub
+architektury opisz cel, kryteria akceptacji i aktualizację specyfikacji.
+Przy małej zmianie technicznej bez zmiany zachowania wystarczy implementacja
+i testy; nie twórz pustej propozycji tylko dla formalności. Po wdrożeniu
+zaktualizuj specyfikację bazową i zarchiwizuj zaakceptowaną zmianę.
+
+Zgłoszenie zadania będzie najłatwiejsze do realizacji, jeśli zawrze:
+
+```text
+Cel: co użytkownik ma móc zrobić albo jaki problem rozwiązać?
+Obecne zachowanie: co dzieje się teraz i gdzie to widać?
+Oczekiwane zachowanie: co ma się zmienić?
+Kryteria akceptacji: konkretne warunki, które można sprawdzić lub przetestować.
+Ograniczenia: czego nie zmieniać, jakie są zależności lub wymagania UX?
+Poza zakresem: jakie pokrewne rzeczy świadomie odkładamy?
+```
+
+Nie trzeba uzupełniać pól, które nie mają zastosowania. Warto dołączyć kroki
+odtworzenia, zrzuty ekranu, przykładowe dane lub seed mapy, gdy pomagają
+wyjaśnić problem. Jeśli wymaganie dopuszcza kilka istotnie różnych rozwiązań,
+opisz preferencję albo poproś o krótkie porównanie przed implementacją.
+
+Testy i polecenia developerskie uruchamiaj w kontenerze, nie przez lokalny PHP:
+
+```sh
+docker compose build app
+docker compose run --rm --no-deps \
+  -e APP_ENV=testing \
+  -e DB_CONNECTION=sqlite \
+  -e DB_DATABASE=:memory: \
+  app php artisan test
+```
+
+Testy korzystają z SQLite in-memory i nie wymagają działającej usługi MariaDB.
+Kontener aplikacji używa PHP 8.5.
 
 ## Stan prac
 

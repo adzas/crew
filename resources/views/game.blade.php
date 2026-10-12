@@ -119,6 +119,18 @@
             background: transparent;
             border: 1px dashed rgba(158, 193, 191, 0.22);
         }
+        .local-map .tile.ship::before,
+        .local-map .tile.ship::after {
+            display: none;
+        }
+        .ship-heading-arrow {
+            color: var(--ship);
+            font-size: clamp(15px, 5vw, 24px);
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 0 5px rgba(255, 220, 125, 0.8);
+            transform: rotate(var(--heading-angle));
+        }
         .tile {
             display: flex;
             align-items: center;
@@ -497,10 +509,15 @@
                                         $isGoal = $isInsideMap && $target['x'] === $x && $target['y'] === $y;
                                         $isCrash = $isShip && $isWall && ($run->outcome_reason ?? null) === 'obstacle';
                                     @endphp
-                                    <div class="tile {{ $isInsideMap ? '' : 'outside' }} {{ $isWall ? 'wall' : '' }} {{ $isGoal ? 'goal' : '' }} {{ $isShip ? 'ship' : '' }} {{ $isCrash ? 'crash' : '' }}" aria-label="{{ $isInsideMap ? 'Pole '.($x + 1).', '.($y + 1) : 'Poza mapą' }}" @if ($isShip) data-mini-ship="center" data-ship-marker="x" @endif></div>
+                                    <div class="tile {{ $isInsideMap ? '' : 'outside' }} {{ $isWall ? 'wall' : '' }} {{ $isGoal ? 'goal' : '' }} {{ $isShip ? 'ship' : '' }} {{ $isCrash ? 'crash' : '' }}" aria-label="{{ $isInsideMap ? 'Pole '.($x + 1).', '.($y + 1) : 'Poza mapą' }}" @if ($isShip) data-mini-ship="center" data-ship-marker="x" data-ship-heading="{{ $currentHeading }}" @endif>
+                                        @if ($isShip)
+                                            <span class="ship-heading-arrow" style="--heading-angle: {{ $headingAngle }}deg" aria-label="Dziób statku skierowany na {{ $currentHeading }}">↑</span>
+                                        @endif
+                                    </div>
                                 @endfor
                             @endfor
                         </div>
+                        <p class="helmsman-status">Dziób statku: <strong>{{ $currentHeading }}</strong></p>
                     </section>
                     <div class="helmsman-panel">
                         <div class="helmsman-header">

@@ -206,6 +206,9 @@ class GameStartTest extends TestCase
             ->assertSee('data-local-map-size="5"', false)
             ->assertSee('data-mini-ship="center"', false)
             ->assertSee('data-ship-marker="x"', false)
+            ->assertSee('data-ship-heading="SE"', false)
+            ->assertSeeText('Dziób statku: SE')
+            ->assertSee('aria-label="Dziób statku skierowany na SE"', false)
             ->assertDontSee('Podgląd odświeży się po ruchu statku')
             ->assertDontSee('Zarządzanie stanowiskami')
             ->assertSee('SE')
@@ -229,7 +232,9 @@ class GameStartTest extends TestCase
         ])
             ->get(route('game'))
             ->assertOk()
-            ->assertSee('selected-direction');
+            ->assertSee('selected-direction')
+            ->assertSee('data-ship-heading="SE"', false)
+            ->assertSeeText('Dziób statku: SE');
 
         $firstCommand = GameCommand::query()->firstOrFail();
         $this->assertSame('pending', $firstCommand->status);

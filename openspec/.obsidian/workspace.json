@@ -1,0 +1,248 @@
+{
+  "main": {
+    "id": "0a835f490686df00",
+    "type": "split",
+    "children": [
+      {
+        "id": "004ba1eff2ca2110",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "805b5fd10739c2ce",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "specs/gameplay/navigation-and-collisions/spec.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "spec"
+            }
+          },
+          {
+            "id": "581b05fc1b8c1cd5",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "tpl/scenario.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "scenario"
+            }
+          },
+          {
+            "id": "b6dc7a334302d77c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "changes/README.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "README"
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "e425ff835c1d51b5",
+    "type": "split",
+    "children": [
+      {
+        "id": "b1ee4aaa6e76888b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0d9ab7877b387b6c",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Pliki"
+            }
+          },
+          {
+            "id": "a62e7a1a21f9a8d2",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Wyszukiwarka"
+            }
+          },
+          {
+            "id": "e6252554439eb1af",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Ulubione"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "903d8df531d19974",
+    "type": "split",
+    "children": [
+      {
+        "id": "4f07c6f5f56ec0a6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "459ee91724fef9b2",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "changes/README.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Linki zwrotne"
+            }
+          },
+          {
+            "id": "18bdad84a3dca3b7",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "changes/README.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Łącza wychodzące"
+            }
+          },
+          {
+            "id": "f915abf9dcb83091",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tagi"
+            }
+          },
+          {
+            "id": "10979ed4fdbb0b69",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Wszystkie atrybuty"
+            }
+          },
+          {
+            "id": "a843165ac6e08b6b",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "changes/README.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Konspekt"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Otwórz okno szybkiego wyboru": false,
+      "graph:Otwórz podgląd grafu": false,
+      "canvas:Stwórz nową tablicę": false,
+      "daily-notes:Otwórz dzisiejszy dziennik": false,
+      "templates:Wstaw szablon": false,
+      "command-palette:Otwórz paletę poleceń": false,
+      "bases:Stwórz nową bazę danych": false
+    }
+  },
+  "active": "0d9ab7877b387b6c",
+  "lastOpenFiles": [
+    "changes/locator-role/tasks.md",
+    "changes/locator-role/specs/gameplay/roles/navigator/spec.md",
+    "changes/locator-role/specs/gameplay/roles/navigator",
+    "changes/locator-role/specs/gameplay/roles",
+    "changes/locator-role/specs/gameplay",
+    "changes/locator-role/specs",
+    "changes/locator-role/proposal.md",
+    "changes/README.md",
+    "changes/locator-role/spec",
+    "project.md",
+    "specs/multiplayer/roles-and-runs/spec.md",
+    "tpl/scenario.md",
+    "changes/locator-role",
+    "tpl/spec.md",
+    "specs/gameplay/roles/captain/spec.md",
+    "changes/locator-role/specs/gameplay/roles/navigator/spec.md",
+    "specs/gameplay/roles/helmsman/spec.md",
+    "kapitan.md",
+    "specs/gameplay/navigation-and-collisions/spec.md",
+    "tpl",
+    "specs/gameplay/map-generation/spec.md",
+    "specs/gameplay/roles/helmsman",
+    "specs/gameplay/roles/captain/Bez nazwy.md",
+    "specs/gameplay/roles/captain",
+    "specs/gameplay/roles"
+  ]
+}

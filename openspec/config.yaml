@@ -1,0 +1,26 @@
+schema: spec-driven
+
+context: |
+  Crew is a cooperative pirate-ship browser game built with Laravel 12 and PHP 8.5.
+  The server is authoritative for rooms, roles, commands, map generation, and
+  simulation state. MariaDB is used by the app; automated tests use in-memory
+  SQLite and should run in the PHP Docker Compose app container.
+
+  Read openspec/project.md and the relevant files under openspec/specs/ before
+  changing behavior. Keep implementation in the existing Laravel structure.
+  Update baseline specs when an approved change is implemented.
+
+rules:
+  proposal:
+    - State the user problem, intended behavior, acceptance criteria, and non-goals.
+    - Identify affected capabilities and compatibility or migration concerns.
+    - Ask before implementing when a material product behavior is undecided.
+  specs:
+    - Write normative requirements with observable scenarios.
+    - Keep baseline specs aligned with implemented and tested behavior.
+  design:
+    - Describe only decisions that need explanation, including alternatives and trade-offs.
+    - Prefer the existing Laravel services, controllers, models, and Blade patterns.
+  tasks:
+    - Include focused tests for changed behavior and relevant regression coverage.
+    - Run PHP tests inside the app container using SQLite in-memory.

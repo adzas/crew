@@ -24,8 +24,9 @@
 stanowiskiem załogi. Może zarządzać stanowiskami także wtedy, gdy sam obejmie
 rolę załogową. Start wymaga obsadzenia Kapitana i Sternika; pozostałe role są
 opcjonalne. W aktualnej wersji Kapitan widzi pełną mapę 20×20, a Sternik
-otrzymuje lokalny podgląd 5×5. Docelowo mapa Kapitana będzie niepełna, a raporty
-Lokalizatora i Bocianiego gniazda będą dostarczać ograniczone informacje.
+otrzymuje lokalny podgląd 5×5 z oznaczeniem kierunku dziobu statku. Docelowo
+mapa Kapitana będzie niepełna, a raporty Lokalizatora i Bocianiego gniazda będą
+dostarczać ograniczone informacje.
 Ekran rozgrywki można wyświetlić na telefonie lub większym ekranie.
 
 ## Czas i polecenia
@@ -64,6 +65,10 @@ Ekran rozgrywki można wyświetlić na telefonie lub większym ekranie.
 - Mapa ma rozmiar 20x20 komórek i jest stała w ramach jednej partii.
 - Statek startuje na ustalonej pozycji wewnątrz mapy, a cel i przeszkody są
   generowane dla partii z zapisanego seeda.
+- Przeszkody tworzą gęstsze skupiska w formie wysp; generator zachowuje
+  przejezdną trasę do celu. Obszar 5×5 wokół pozycji startowej (dwa pola
+  w każdym kierunku) pozostaje pusty, aby początkowy kurs nie kończył się
+  natychmiastową kolizją.
 - Każda partia ma własną, losową lub ręcznie ustaloną konfigurację przeszkód.
 - Granica mapy jest nieprzekraczalna; wejście w obramowanie kończy grę.
 - Przeszkody na mapie są trwałe i traktowane jak ściana.
